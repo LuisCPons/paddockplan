@@ -172,9 +172,3 @@ function CircuitSchematicEngine() {
     </AnimatePresence>
   );
 }
-
-        </div>
-      </div>
-    </section>
-  );
-}
