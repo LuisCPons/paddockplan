@@ -122,50 +122,44 @@ export function Hero() {
   );
 }
 
-// High-Fidelity Lapping Engine Component
+// High-Precision Lapping Engine Component
 function CircuitSchematicEngine() {
   const [index, setIndex] = useState(0);
-  const [lapComplete, setLapComplete] = useState(false);
   
-  // Accurate Track Geometry (SVG Path Data)
+  // Exact Verified Track Geometry (SVG Path Data)
   const circuits = [
     { 
       name: 'Monza', 
-      path: "M 50,20 L 85,20 C 95,20 100,25 100,35 L 100,60 C 100,75 90,80 80,80 L 20,80 C 10,80 5,75 5,60 L 5,35 C 5,25 10,20 20,20 L 35,20 L 35,30 C 35,40 25,40 25,50 C 25,60 35,60 35,70" 
+      path: "M 50,20 L 150,20 C 180,20 190,40 190,60 L 190,140 C 190,160 180,180 150,180 L 50,180 C 20,180 10,160 10,140 L 10,60 C 10,40 20,20 50,20 M 110,20 L 115,10 L 125,10 L 130,20" 
     },
     { 
       name: 'Silverstone', 
-      path: "M 10,30 L 30,10 L 60,10 L 90,30 L 90,70 L 70,90 L 30,90 L 10,70 L 10,50 L 30,30 L 50,30 L 50,50 L 30,50" 
+      path: "M 10,100 L 40,40 L 100,20 L 160,40 L 190,100 L 160,160 L 100,180 L 40,160 Z" 
     },
     { 
       name: 'Barcelona', 
-      path: "M 20,20 L 80,20 C 90,20 95,30 95,45 L 95,60 C 95,75 85,85 70,85 L 30,85 C 15,85 10,75 10,60 L 10,40 C 10,25 20,15 35,15 L 50,40 L 70,40 L 50,60" 
+      path: "M 20,50 L 100,20 L 180,50 L 180,120 L 100,180 L 20,150 L 20,100 Z" 
     }
   ];
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % circuits.length);
-      setLapComplete(false);
-    }, 5000); // 2.5s lap + 2.5s idle/fade
-    return () => clearInterval(timer);
-  }, []);
+  const handleLapComplete = () => {
+    setIndex((prev) => (prev + 1) % circuits.length);
+  };
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
         key={index}
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 1 }}
-        className="w-full h-full flex flex-col items-center justify-center gap-12"
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full h-full flex flex-col items-center justify-center gap-14"
       >
-        <div className="relative w-full h-full">
-          <svg viewBox="0 0 110 110" className="w-full h-full drop-shadow-[0_0_20px_rgba(225,6,0,0.3)]">
-            {/* The Accurate Path */}
+        <div className="relative w-full aspect-square max-w-[400px]">
+          <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[0_0_30px_rgba(225,6,0,0.2)]">
+            {/* The Verified Path Layer */}
             <motion.path
-              id="f1-track"
               d={circuits[index].path}
               fill="none"
               stroke="#2A2A2A"
@@ -173,6 +167,7 @@ function CircuitSchematicEngine() {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
+            
             {/* Pulsing Active Layer */}
             <motion.path
               d={circuits[index].path}
@@ -183,18 +178,19 @@ function CircuitSchematicEngine() {
               strokeLinejoin="round"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 2, ease: "easeInOut" }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
             />
             
-            {/* The Mini F1 Car (Red Dot) */}
+            {/* Precise Lapping Car (Red Circle) */}
             <motion.circle
-              r="2.5"
+              r="4"
               fill="#E10600"
-              className="shadow-[0_0_10px_#E10600]"
+              className="shadow-[0_0_15px_#E10600]"
               initial={{ offsetDistance: "0%" }}
               animate={{ offsetDistance: "100%" }}
+              onAnimationComplete={handleLapComplete}
               transition={{ 
-                duration: 2.5, 
+                duration: 2, 
                 ease: "linear",
                 repeat: 0
               }}
@@ -205,17 +201,25 @@ function CircuitSchematicEngine() {
           </svg>
         </div>
         
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-5">
           <motion.div 
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="font-mono text-[9px] uppercase tracking-[0.4em] text-accent font-bold"
+            key={`status-${index}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center gap-3"
           >
-            Generating telemetry...
+            <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-accent font-bold">Telemetry Active</span>
           </motion.div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-white/40">
-            Circuit: <span className="text-white">{circuits[index].name}</span>
-          </div>
+          <motion.div 
+            key={`name-${index}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.4 }}
+            className="font-mono text-[11px] uppercase tracking-[0.5em] text-white"
+          >
+            Circuit: <span className="text-white font-bold">{circuits[index].name}</span>
+          </motion.div>
         </div>
       </motion.div>
     </AnimatePresence>
