@@ -21,24 +21,22 @@ export default async function BlueprintPage({ params }: { params: Promise<{ gp: 
     notFound();
   }
 
-  // Calculate total budget (average of ranges)
+  // Calculate total budget (average of ranges) in local currency
   const calculateTotal = () => {
-    const parseRange = (range: string) => {
-      const numbers = range.match(/\d+/g);
-      if (!numbers) return 0;
-      if (numbers.length === 1) return parseInt(numbers[0]);
-      return (parseInt(numbers[0]) + parseInt(numbers[1])) / 2;
-    };
+    const getAvg = (item: any) => (item.min + item.max) / 2;
 
-    const food = parseRange(data.detailedBudget.foodDaily) * 3; // 3 days
-    const transport = parseRange(data.detailedBudget.trackTransport) * 3;
-    const flights = parseRange(data.detailedBudget.flightsAvg);
-    const misc = parseRange(data.detailedBudget.miscellaneous);
+    const food = getAvg(data.detailedBudget.foodDaily) * 3; // 3 days
+    const transport = getAvg(data.detailedBudget.trackTransport) * 3;
+    const flights = getAvg(data.detailedBudget.flightsAvg);
+    const misc = getAvg(data.detailedBudget.miscellaneous);
 
     return Math.round(food + transport + flights + misc);
   };
 
-  const totalBudget = calculateTotal();
+  const totalBudget = {
+    amount: calculateTotal(),
+    currency: data.detailedBudget.foodDaily.currency
+  };
 
   return <BlueprintDashboard data={data} totalBudget={totalBudget} gpKey={gpKey} />;
 }

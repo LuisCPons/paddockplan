@@ -1,14 +1,15 @@
-"use client";
-
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Check } from 'lucide-react';
 import { AccessModal } from './AccessModal';
+import { useCurrency } from '@/lib/CurrencyContext';
+import { formatPrice } from '@/lib/formatPrice';
 
 const TIERS = [
   {
+    key: 'free',
     name: 'Quick GP Plan',
-    price: 'Free',
+    price: { amount: 0, currency: 'EUR' },
     description: 'Essential teaser data to start your weekend planning.',
     features: [
       'Basic Budget Range',
@@ -19,8 +20,9 @@ const TIERS = [
     popular: false
   },
   {
+    key: 'premium',
     name: 'Full Weekend Blueprint',
-    price: '€19',
+    price: { amount: 19, currency: 'EUR' },
     period: 'one-time',
     description: 'The definitive digital blueprint for your entire trip.',
     features: [
@@ -36,7 +38,15 @@ const TIERS = [
 ];
 
 export function Pricing() {
+  const { selectedCurrency, convert } = useCurrency();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const renderPrice = (tier: any) => {
+    if (tier.key === 'free') return 'Free';
+    
+    const convertedAmount = convert(tier.price.amount, tier.price.currency);
+    return formatPrice(convertedAmount, selectedCurrency);
+  };
 
   return (
     <>
@@ -83,7 +93,7 @@ export function Pricing() {
                 <div className="mb-10">
                   <h3 className="text-lg font-bold uppercase tracking-widest mb-4">{tier.name}</h3>
                   <div className="flex items-baseline gap-2 mb-4">
-                    <span className="text-5xl font-light tracking-tighter text-foreground">{tier.price}</span>
+                    <span className="text-5xl font-light tracking-tighter text-foreground">{renderPrice(tier)}</span>
                     {tier.period && <span className="text-muted-foreground text-sm">{tier.period}</span>}
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed font-light h-12">{tier.description}</p>

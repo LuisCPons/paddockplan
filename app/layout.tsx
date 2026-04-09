@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Get expert-backed logistics, stay heatmaps, and secret tips for your next F1 trip.",
 };
 
+import { CurrencyProvider } from '@/lib/CurrencyContext';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,7 +32,9 @@ export default function RootLayout({
       className={`${manrope.variable} ${inter.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-inter selection:bg-accent selection:text-background tracking-tight">
-        {children}
+        <CurrencyProvider>
+          {children}
+        </CurrencyProvider>
       </body>
     </html>
   );

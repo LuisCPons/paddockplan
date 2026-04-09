@@ -4,6 +4,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AccessModal } from './AccessModal';
 import { Ticket, Home, Lightbulb, ArrowRight, CircleDollarSign, Map, Clock, Lock } from 'lucide-react';
+import { useCurrency } from '@/lib/CurrencyContext';
+import { formatPrice } from '@/lib/formatPrice';
+import { CurrencySelector } from './CurrencySelector';
 
 /**
  * MDODULARITY NOTE:
@@ -16,7 +19,7 @@ import { Ticket, Home, Lightbulb, ArrowRight, CircleDollarSign, Map, Clock, Lock
 type BudgetTier = 'Budget' | 'Balanced' | 'Premium';
 
 interface TierData {
-  budgetRange: string;
+  budgetRange: { min: number, max: number, currency: 'EUR' | 'GBP' };
   ticketType: string;
   stayStyle: string;
   tips: string[];
@@ -32,19 +35,19 @@ const PLANNER_DATA: Record<number, GPData> = {
     name: 'Monza',
     tiers: {
       Budget: {
-        budgetRange: '€400 - €700',
+        budgetRange: { min: 400, max: 700, currency: 'EUR' },
         ticketType: 'General Admission (Prato)',
         stayStyle: 'Hostel or Budget Airbnb in Milan',
         tips: ['Take the train from Milan Centrale early.', 'Bring a small stool for General Admission.', 'Pack comfortable walking shoes for the park.']
       },
       Balanced: {
-        budgetRange: '€800 - €1,500',
+        budgetRange: { min: 800, max: 1500, currency: 'EUR' },
         ticketType: 'Grandstand (Variante del Rettifilo)',
         stayStyle: '3-4 Star Hotel in Milan with Metro access',
         tips: ['Book your grandstand tickets months ahead.', 'Enjoy dinner in the Brera district.', 'Use the shuttle bus from Monza station.']
       },
       Premium: {
-        budgetRange: '€3,000+',
+        budgetRange: { min: 3000, max: 5000, currency: 'EUR' },
         ticketType: 'VIP Hospitality & Pit Access',
         stayStyle: 'Luxury Boutique Hotel in Milan City Center',
         tips: ['Best arrival times for the morning pit walk.', 'Visit Lake Como for a post-race retreat.', 'Early track entry is essential for the podium dash.']
@@ -55,19 +58,19 @@ const PLANNER_DATA: Record<number, GPData> = {
     name: 'Silverstone',
     tiers: {
       Budget: {
-        budgetRange: '£350 - £600',
+        budgetRange: { min: 350, max: 600, currency: 'GBP' },
         ticketType: 'General Admission',
         stayStyle: 'Camping at the track or nearby',
         tips: ['Bring a radio for track commentary.', 'Prepare for very unpredictable weather.', 'Book your parking well in advance.']
       },
       Balanced: {
-        budgetRange: '£700 - £1,300',
+        budgetRange: { min: 700, max: 1300, currency: 'GBP' },
         ticketType: 'Grandstand (Village or Woodcote)',
         stayStyle: 'B&B in Northampton or Milton Keynes',
         tips: ['Use the park and ride services.', 'Explore the Silverstone Museum on Thursday.', 'Pack a quality waterproof poncho.']
       },
       Premium: {
-        budgetRange: '£2,500+',
+        budgetRange: { min: 2500, max: 4000, currency: 'GBP' },
         ticketType: 'Fusion Lounge or Octane Terrace',
         stayStyle: 'Luxury Manor House or Hotel in the Cotswolds',
         tips: ['Helicopter transfers avoid the traffic.', 'Enjoy the evening concerts from VIP areas.', 'Book a private guided track walk.']
@@ -78,19 +81,19 @@ const PLANNER_DATA: Record<number, GPData> = {
     name: 'Barcelona',
     tiers: {
       Budget: {
-        budgetRange: '€300 - €500',
+        budgetRange: { min: 300, max: 500, currency: 'EUR' },
         ticketType: 'General Admission (Pelouse)',
         stayStyle: 'Hostel in Barcelona City Center',
         tips: ['Take the R2 Nord train to Montmeló.', 'Wear plenty of sunscreen, shade is rare.', 'The fan zone has great food at lower prices.']
       },
       Balanced: {
-        budgetRange: '€600 - €1,100',
+        budgetRange: { min: 600, max: 1100, currency: 'EUR' },
         ticketType: 'Grandstand G or M',
         stayStyle: 'Apartment rental in Eixample',
         tips: ['Book a grandstand near the first corner.', 'Stay for the track invasion at the finish.', 'Enjoy the nightlife in El Born.']
       },
       Premium: {
-        budgetRange: '€2,000+',
+        budgetRange: { min: 2000, max: 3500, currency: 'EUR' },
         ticketType: 'Premium Grandstand or Garden Village',
         stayStyle: '5-Star Beach Hotel (Arts or W)',
         tips: ['Use the high-speed AVE train for city access.', 'VIP areas include the best circuit views.', 'Explore the Montserrat mountains via helicopter.']
@@ -112,6 +115,7 @@ const getStyleName = (val: number): string => {
 };
 
 export function QuickPlanner() {
+  const { selectedCurrency, convert } = useCurrency();
   const [gpIndex, setGpIndex] = useState(1);
   const [budgetIndex, setBudgetIndex] = useState(2);
   const [lengthIndex, setLengthIndex] = useState(3);
@@ -134,8 +138,26 @@ export function QuickPlanner() {
     };
   }, [gpIndex, budgetIndex]);
 
+  const formattedRange = useMemo(() => {
+    const range = results.budgetRange;
+    const minConverted = convert(range.min, range.currency as any);
+    const maxConverted = convert(range.max, range.currency as any);
+    
+    const minStr = formatPrice(minConverted, selectedCurrency, range.min, range.currency as any);
+    const maxStr = formatPrice(maxConverted, selectedCurrency, range.max, range.currency as any);
+    
+    // Simple range display if converted
+    if (selectedCurrency !== range.currency) {
+      const symbol = selectedCurrency === 'EUR' ? '€' : selectedCurrency === 'GBP' ? '£' : '$';
+      const origSymbol = range.currency === 'EUR' ? '€' : '£';
+      return `${symbol}${Math.round(minConverted)} - ${symbol}${Math.round(maxConverted)} (~${origSymbol}${range.min}-${range.max})`;
+    }
+    
+    return `${minStr} - ${maxStr}`;
+  }, [results.budgetRange, selectedCurrency, convert]);
+
   // Derived state hash for animation triggers
-  const stateHash = `${gpIndex}-${budgetIndex}-${lengthIndex}-${styleIndex}`;
+  const stateHash = `${gpIndex}-${budgetIndex}-${lengthIndex}-${styleIndex}-${selectedCurrency}`;
 
   return (
     <section id="plan" className="py-24 md:py-32 bg-background border-t border-border">
@@ -157,7 +179,10 @@ export function QuickPlanner() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Grand Prix</label>
-                <span className="text-sm font-bold text-accent">{PLANNER_DATA[gpIndex].name}</span>
+                <div className="flex items-center gap-3">
+                  <CurrencySelector />
+                  <span className="text-sm font-bold text-accent">{PLANNER_DATA[gpIndex].name}</span>
+                </div>
               </div>
               <input 
                 type="range" min="1" max="3" step="1"
@@ -257,7 +282,7 @@ export function QuickPlanner() {
                 <div className="space-y-8">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Estimated Range</p>
-                    <p className="text-5xl font-light text-foreground tracking-tighter">{results.budgetRange}</p>
+                    <p className="text-3xl md:text-4xl font-light text-foreground tracking-tighter">{formattedRange}</p>
                     <p className="text-[10px] text-muted-foreground mt-2 font-light uppercase tracking-wide">Includes {lengthIndex} nights • {getStyleName(styleIndex)} style</p>
                   </div>
                   

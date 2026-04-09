@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Flag } from 'lucide-react';
 import { useState } from 'react';
 import { AccessModal } from './AccessModal';
+import { CurrencySelector } from './CurrencySelector';
 
 export function Navbar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,7 +25,8 @@ export function Navbar() {
               <Link href="#pricing" className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground hover:text-accent transition-colors">Pricing</Link>
             </div>
 
-            <div>
+            <div className="flex items-center gap-6">
+              <CurrencySelector />
               <button 
                 onClick={() => setIsModalOpen(true)} 
                 className="bg-accent text-white px-8 py-3 font-bold uppercase tracking-[0.15em] text-[10px] hover:bg-white hover:text-black transition-all duration-300 cursor-pointer"

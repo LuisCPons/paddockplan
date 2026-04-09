@@ -21,14 +21,17 @@ import {
 import Link from 'next/link';
 
 import { WeatherModule } from './WeatherModule';
+import { useCurrency } from '@/lib/CurrencyContext';
+import { formatPrice } from '@/lib/formatPrice';
 
 interface BlueprintDashboardProps {
   data: any;
-  totalBudget: number;
+  totalBudget: { amount: number; currency: any };
   gpKey: string;
 }
 
 export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashboardProps) {
+  const { selectedCurrency, convert } = useCurrency();
   const [packedItems, setPackedItems] = useState<Record<number, boolean>>({});
 
   const toggleItem = (index: number) => {
@@ -40,6 +43,19 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
   const resetItems = () => {
     setPackedItems({});
+  };
+
+  const formatItemPrice = (item: any) => {
+    const minConverted = convert(item.min, item.currency);
+    const maxConverted = convert(item.max, item.currency);
+    
+    if (item.min === item.max) {
+      return formatPrice(minConverted, selectedCurrency, item.min, item.currency);
+    }
+    
+    // For ranges, we show the converted range
+    const symbol = selectedCurrency === 'EUR' ? '€' : selectedCurrency === 'GBP' ? '£' : '$';
+    return `${symbol}${Math.round(minConverted)} - ${symbol}${Math.round(maxConverted)}`;
   };
 
   return (
@@ -64,12 +80,15 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 <h1 className="text-xl font-extrabold tracking-tighter">Your {data.name} Guide</h1>
               </div>
             </div>
-            <button 
-              onClick={() => window.print()}
-              className="flex items-center gap-2 bg-foreground text-background px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-accent hover:text-white transition-all print:hidden"
-            >
-              <Printer className="w-4 h-4" /> Save as PDF
-            </button>
+            <div className="flex items-center gap-4 print:hidden">
+              <CurrencySelector />
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center gap-2 bg-foreground text-background px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-accent hover:text-white transition-all"
+              >
+                <Printer className="w-4 h-4" /> Save as PDF
+              </button>
+            </div>
           </div>
         </div>
         
@@ -99,17 +118,20 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
-                { label: 'Food & Dining (3 Days)', value: data.detailedBudget.foodDaily, icon: TrendingUp },
-                { label: 'Track Transport', value: data.detailedBudget.trackTransport, icon: Clock },
-                { label: 'Avg Flight Cost', value: data.detailedBudget.flightsAvg, icon: MapIcon },
-                { label: 'Miscellaneous Buffer', value: data.detailedBudget.miscellaneous, icon: ShieldCheck },
+                { label: 'Food & Dining (3 Days)', value: formatItemPrice(data.detailedBudget.foodDaily), icon: TrendingUp, note: data.detailedBudget.foodDaily.note },
+                { label: 'Track Transport', value: formatItemPrice(data.detailedBudget.trackTransport), icon: Clock, note: data.detailedBudget.trackTransport.note },
+                { label: 'Avg Flight Cost', value: formatItemPrice(data.detailedBudget.flightsAvg), icon: MapIcon, note: data.detailedBudget.flightsAvg.note },
+                { label: 'Miscellaneous Buffer', value: formatItemPrice(data.detailedBudget.miscellaneous), icon: ShieldCheck, note: data.detailedBudget.miscellaneous.note },
               ].map((item, i) => (
                 <div key={i} className="p-6 border border-border bg-card/30 rounded-xl space-y-2">
                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     <item.icon className="w-3 h-3 text-accent" />
                     {item.label}
                   </div>
-                  <p className="text-2xl font-bold tracking-tight">{item.value}</p>
+                  <div>
+                    <p className="text-2xl font-bold tracking-tight">{item.value}</p>
+                    {item.note && <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">{item.note}</p>}
+                  </div>
                 </div>
               ))}
             </div>
@@ -117,7 +139,9 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
             <div className="p-8 bg-foreground text-background rounded-2xl flex flex-col justify-between print:bg-white print:text-black print:border print:border-black">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 block mb-2">Total Estimated Weekend Cost</span>
-                <p className="text-6xl font-extrabold tracking-tighter">€{totalBudget}</p>
+                <p className="text-5xl font-extrabold tracking-tighter">
+                  {formatPrice(convert(totalBudget.amount, totalBudget.currency), selectedCurrency, totalBudget.amount, totalBudget.currency)}
+                </p>
                 <p className="text-xs mt-4 opacity-60 font-medium">Calculated based on 3-day average trip data + recommended local margins.</p>
               </div>
               <div className="mt-8 pt-8 border-t border-background/10 print:border-black/10">
