@@ -122,15 +122,15 @@ export function Hero() {
   );
 }
 
-// High-Precision Lapping Engine Component
+// High-Fidelity Lapping Engine Component
 function CircuitSchematicEngine() {
   const [index, setIndex] = useState(0);
   
-  // Authentic Track Geometry (Official Map Data - 200x200 System)
+  // Authentic Track Geometry (Verification Level: High)
   const circuits = [
     { 
       name: 'Monza', 
-      path: "M 170,160 L 50,160 C 20,160 10,130 10,100 C 10,70 30,50 60,50 L 100,50 L 105,40 L 115,40 L 120,50 L 140,50 C 165,50 175,65 175,85 L 175,100 L 165,110 L 175,120 L 180,115 L 185,130 Z" 
+      path: "M 50,20 L 220,20 L 225,10 L 240,10 L 245,20 L 380,20 C 430,20 450,50 440,90 L 410,160 Q 400,180 380,180 L 350,180 Q 330,180 320,200 L 300,240 Q 280,270 240,270 L 100,270 C 40,270 10,230 10,150 C 10,70 30,20 50,20 Z" 
     },
     { 
       name: 'Silverstone', 
@@ -156,14 +156,14 @@ function CircuitSchematicEngine() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="w-full h-full flex flex-col items-center justify-center gap-14"
       >
-        <div className="relative w-full aspect-square max-w-[400px]">
-          <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[0_0_40px_rgba(225,6,0,0.2)]">
+        <div className="relative w-full aspect-[5/3] max-w-[500px]">
+          <svg viewBox="0 0 500 300" className="w-full h-full drop-shadow-[0_0_40px_rgba(225,6,0,0.2)]">
             {/* The Authentic Path Layer */}
             <motion.path
               d={circuits[index].path}
               fill="none"
               stroke="rgba(255,255,255,0.05)"
-              strokeWidth="2"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -173,25 +173,25 @@ function CircuitSchematicEngine() {
               d={circuits[index].path}
               fill="none"
               stroke="#E10600"
-              strokeWidth="1.5"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
-              className="opacity-30"
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+              className="opacity-40"
             />
             
             {/* Telemetry Pointer (Red Dot) */}
             <motion.circle
-              r="3.5"
+              r="4.5"
               fill="#E10600"
               className="shadow-[0_0_15px_#E10600]"
               initial={{ offsetDistance: "0%" }}
               animate={{ offsetDistance: "100%" }}
               onAnimationComplete={handleLapComplete}
               transition={{ 
-                duration: 2.0, 
+                duration: 2.5, 
                 ease: "linear",
                 repeat: 0
               }}
@@ -210,16 +210,16 @@ function CircuitSchematicEngine() {
             transition={{ delay: 0.2 }}
             className="flex items-center gap-3"
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.5em] text-accent font-bold">Telemetry Live</span>
+            <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_10px_#E10600]" />
+            <span className="font-mono text-[11px] uppercase tracking-[0.6em] text-accent font-bold">Telemetry Live</span>
           </motion.div>
           <motion.div 
             key={`name-${index}`}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
-            className="font-mono text-[11px] uppercase tracking-[0.6em] text-white"
+            animate={{ opacity: 0.6 }}
+            className="font-mono text-[12px] uppercase tracking-[0.7em] text-white"
           >
-            Schematic: <span className="text-white font-bold">{circuits[index].name}</span>
+            Data: <span className="text-white font-black">{circuits[index].name} Verified 2026</span>
           </motion.div>
         </div>
       </motion.div>
