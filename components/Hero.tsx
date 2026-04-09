@@ -125,30 +125,29 @@ export function Hero() {
 // High-Fidelity Lapping Engine Component
 function CircuitSchematicEngine() {
   const [index, setIndex] = useState(0);
+  const [lapComplete, setLapComplete] = useState(false);
   
-  // High-Precision Coordinates optimized for provided PNG overlays
+  // Accurate Track Geometry (SVG Path Data)
   const circuits = [
     { 
       name: 'Monza', 
-      image: '/assets/track-monza.png',
-      path: "M 10,65 L 85,65 C 95,65 100,60 100,50 L 100,35 C 100,20 90,15 80,15 L 20,15 C 10,15 5,20 5,30 L 5,50 C 5,60 10,65 20,65" 
+      path: "M 50,20 L 85,20 C 95,20 100,25 100,35 L 100,60 C 100,75 90,80 80,80 L 20,80 C 10,80 5,75 5,60 L 5,35 C 5,25 10,20 20,20 L 35,20 L 35,30 C 35,40 25,40 25,50 C 25,60 35,60 35,70" 
     },
     { 
       name: 'Silverstone', 
-      image: '/assets/track-silverstone.png',
-      path: "M 15,45 L 30,15 L 60,15 L 95,45 L 95,75 L 75,95 L 30,95 L 10,75 L 10,60 L 30,45 L 55,45 L 55,60 L 30,60" 
+      path: "M 10,30 L 30,10 L 60,10 L 90,30 L 90,70 L 70,90 L 30,90 L 10,70 L 10,50 L 30,30 L 50,30 L 50,50 L 30,50" 
     },
     { 
       name: 'Barcelona', 
-      image: '/assets/track-barcelona.png',
-      path: "M 20,25 L 85,25 C 95,25 100,35 100,50 L 100,65 C 100,80 90,90 75,90 L 30,90 C 15,90 10,80 10,65 L 10,45 C 10,30 20,20 35,20 L 55,45 L 75,45 L 55,70" 
+      path: "M 20,20 L 80,20 C 90,20 95,30 95,45 L 95,60 C 95,75 85,85 70,85 L 30,85 C 15,85 10,75 10,60 L 10,40 C 10,25 20,15 35,15 L 50,40 L 70,40 L 50,60" 
     }
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % circuits.length);
-    }, 5000);
+      setLapComplete(false);
+    }, 5000); // 2.5s lap + 2.5s idle/fade
     return () => clearInterval(timer);
   }, []);
 
@@ -162,28 +161,36 @@ function CircuitSchematicEngine() {
         transition={{ duration: 1 }}
         className="w-full h-full flex flex-col items-center justify-center gap-12"
       >
-        <div className="relative w-full aspect-square max-w-[400px] flex items-center justify-center">
-          {/* High-Fidelity Circuit PNG */}
-          <motion.img 
-            src={circuits[index].image}
-            alt={circuits[index].name}
-            className="w-full h-full object-contain filter brightness-[1.2] drop-shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-          />
-
-          <svg viewBox="0 0 110 110" className="absolute inset-0 w-full h-full pointer-events-none">
-             {/* Invisible Motion Guide */}
-            <path
-              id="f1-track-guide"
+        <div className="relative w-full h-full">
+          <svg viewBox="0 0 110 110" className="w-full h-full drop-shadow-[0_0_20px_rgba(225,6,0,0.3)]">
+            {/* The Accurate Path */}
+            <motion.path
+              id="f1-track"
               d={circuits[index].path}
               fill="none"
-              stroke="none"
+              stroke="#2A2A2A"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Pulsing Active Layer */}
+            <motion.path
+              d={circuits[index].path}
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 2, ease: "easeInOut" }}
             />
             
-            {/* The F1 Car Silhouette */}
-            <motion.g
+            {/* The Mini F1 Car (Red Dot) */}
+            <motion.circle
+              r="2.5"
+              fill="#E10600"
+              className="shadow-[0_0_10px_#E10600]"
               initial={{ offsetDistance: "0%" }}
               animate={{ offsetDistance: "100%" }}
               transition={{ 
@@ -193,18 +200,8 @@ function CircuitSchematicEngine() {
               }}
               style={{
                 offsetPath: `path("${circuits[index].path}")`,
-                offsetRotate: "auto 0deg"
               }}
-            >
-              <image
-                href="/assets/f1-car.png"
-                width="14"
-                height="14"
-                x="-7"
-                y="-7"
-                className="drop-shadow-[0_0_8px_rgba(225,6,0,0.6)]"
-              />
-            </motion.g>
+            />
           </svg>
         </div>
         
@@ -214,7 +211,7 @@ function CircuitSchematicEngine() {
             transition={{ duration: 1.5, repeat: Infinity }}
             className="font-mono text-[9px] uppercase tracking-[0.4em] text-accent font-bold"
           >
-            Processing high-fidelity telemetry...
+            Generating telemetry...
           </motion.div>
           <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-white/40">
             Circuit: <span className="text-white">{circuits[index].name}</span>
