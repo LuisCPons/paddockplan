@@ -7,19 +7,19 @@ import { Plus } from 'lucide-react';
 const FAQS = [
   {
     q: 'Do you sell race tickets directly?',
-    a: 'We act as a premium concierge. While we do not hold inventory directly, our VIP and Grandstand packages include sourcing tickets through our network of trusted official vendors.'
+    a: 'PaddockPlan is an independent digital planning tool. We do not sell tickets. We provide the expert data you need to buy the right tickets and book the best hotels yourself.'
   },
   {
     q: 'Can you help with flights and accommodation?',
-    a: 'Absolutely. Our Paddock Club VIP tier includes full itinerary management, including hotel sourcing and booking.'
+    a: 'We provide strategic advice on when to book and which areas to stay in for maximum efficiency. Our blueprint includes precise stay zone heatmaps and transport timelines so you can book with confidence.'
   },
   {
     q: 'Which races do you cover?',
-    a: 'We currently have in-depth guides and planning services for all 24 races on the modern premier motorsport calendar, from Albert Park to Yas Marina.'
+    a: 'We currently maintain expert planning data for the premier circuits featured in our interactive planner, ensuring every blueprint is verified by local logistics data.'
   },
   {
     q: 'Are you affiliated with the official racing series?',
-    a: 'No. PaddockPlan is an independent premium travel platform built by fans, for fans. We provide unbiased, independent advice and services.'
+    a: 'No. PaddockPlan is an independent premium digital platform built by fans, for fans. We provide unbiased, independent planning data to help you navigate the race weekend like a pro.'
   }
 ];
 

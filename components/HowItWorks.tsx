@@ -5,23 +5,23 @@ import { motion } from 'motion/react';
 const STEPS = [
   {
     num: '01',
-    title: 'Select Destination',
-    description: 'Explore our catalog of 24 international circuits, from historic street tracks to modern super-speedways.'
+    title: 'Select GP & Style',
+    description: "Use the interactive planner to define your trip's DNA."
   },
   {
     num: '02',
-    title: 'Curate Access',
-    description: 'Secure premium grandstand seating, paddock club access, or private hospitality.'
+    title: 'Generate Blueprint',
+    description: 'Our engine processes local data, transport timelines, and stay zones.'
   },
   {
     num: '03',
-    title: 'Refine Logistics',
-    description: 'Our concierge finalizes your bespoke itinerary—flights, luxury transfers, and fine dining.'
+    title: 'Unlock Premium Access',
+    description: 'Get your 12-page custom PDF with precise logistics and maps.'
   },
   {
     num: '04',
-    title: 'The Weekend',
-    description: 'Arrive stress-free and experience the pinnacle of motorsport travel.'
+    title: 'Race Weekend',
+    description: 'Navigate the circuit like a local with your mobile-ready guide.'
   }
 ];
 

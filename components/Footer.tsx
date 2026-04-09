@@ -12,7 +12,7 @@ export function Footer() {
               <span className="uppercase tracking-widest text-lg">Paddock<span className="text-accent">Plan</span></span>
             </Link>
             <p className="text-sm font-light text-foreground/60 leading-relaxed mb-8 max-w-xs">
-              The premier independent travel planner for the global motorsport community.
+              The premier independent digital travel planner for the global motorsport community.
             </p>
             <div className="flex gap-4">
               <a href="#" className="w-10 h-10 border border-zinc-200 flex items-center justify-center text-foreground hover:bg-foreground hover:text-background transition-colors"><MessageCircle className="w-4 h-4" /></a>

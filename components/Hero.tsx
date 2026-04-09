@@ -56,7 +56,7 @@ export function Hero() {
               variants={itemVariants}
               className="text-lg md:text-xl text-muted-foreground mb-10 max-w-xl font-light leading-relaxed font-inter"
             >
-              Curated itineraries, paddock access, and local secrets for the modern motorsport enthusiast. Elevate your Grand Prix experience.
+              The definitive digital blueprint for the modern Grand Prix fan. Move from scattered tabs to a professional 12-page weekend plan in minutes.
             </motion.p>
 
             <motion.div 
