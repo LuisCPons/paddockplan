@@ -86,6 +86,13 @@ export function WeatherModule({ gpKey, month, coordinates }: WeatherModuleProps)
 
   return (
     <div className="p-8 border border-border bg-card/30 rounded-2xl space-y-8 relative overflow-hidden group hover:border-accent transition-colors print:border-black">
+      {/* Atmospheric Atmosphere Overlay */}
+      {(weather.rainRisk === 'High' || weather.rainRisk === 'Medium') && (
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden">
+          <div className="raindrops" />
+        </div>
+      )}
+
       <div className="flex items-center justify-between relative z-10">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
@@ -102,13 +109,13 @@ export function WeatherModule({ gpKey, month, coordinates }: WeatherModuleProps)
               </div>
             )}
           </div>
-          <h3 className="text-xl font-bold tracking-tight">Weather Strategy</h3>
+          <h3 className="text-xl font-bold tracking-tight text-foreground">Weather Strategy</h3>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Historical Average for {month}</p>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-right">
             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block mb-1">Temp Range</span>
-            <p className="text-3xl font-extrabold tracking-tighter tabular-nums">
+            <p className="text-3xl font-extrabold tracking-tighter tabular-nums text-foreground">
               {weather.high}°<span className="text-xl text-muted-foreground/40 mx-1">/</span>{weather.low}°C
             </p>
           </div>
@@ -129,12 +136,12 @@ export function WeatherModule({ gpKey, month, coordinates }: WeatherModuleProps)
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="flex items-start gap-4 p-4 bg-background/40 border border-border/50 rounded-xl group-hover:bg-background/60 transition-colors"
+              className="flex items-start gap-4 p-4 bg-background/60 border border-border/80 rounded-xl group-hover:bg-background/80 transition-colors"
             >
               <div className={`p-2 rounded-lg bg-accent/5 ${tip.color}`}>
                 <tip.icon className="w-4 h-4" />
               </div>
-              <p className="text-xs font-medium leading-relaxed text-foreground/80">
+              <p className="text-xs font-bold leading-relaxed text-foreground">
                 {tip.text}
               </p>
             </motion.div>
@@ -149,6 +156,28 @@ export function WeatherModule({ gpKey, month, coordinates }: WeatherModuleProps)
 
       {/* Background Icon Decoration */}
       <Sun className="absolute top-[-20px] right-[-20px] w-32 h-32 text-accent/5 -rotate-12 group-hover:rotate-0 transition-transform duration-700 pointer-events-none" />
+
+      <style jsx>{`
+        .raindrops {
+          width: 100%;
+          height: 100%;
+          background-image: 
+            radial-gradient(circle at 10% 10%, #fff 1px, transparent 1px),
+            radial-gradient(circle at 20% 40%, #fff 1.5px, transparent 1.5px),
+            radial-gradient(circle at 30% 20%, #fff 1px, transparent 1px),
+            radial-gradient(circle at 50% 50%, #fff 1.5px, transparent 1.5px),
+            radial-gradient(circle at 70% 30%, #fff 1px, transparent 1px),
+            radial-gradient(circle at 80% 80%, #fff 2px, transparent 2px),
+            radial-gradient(circle at 90% 10%, #fff 1px, transparent 1px);
+          background-size: 200px 200px;
+          animation: rain 1s linear infinite;
+        }
+
+        @keyframes rain {
+          from { background-position: 0 0; }
+          to { background-position: 0 200px; }
+        }
+      `}</style>
     </div>
   );
 }

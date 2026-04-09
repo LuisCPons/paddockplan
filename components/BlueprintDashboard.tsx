@@ -24,6 +24,8 @@ import { WeatherModule } from './WeatherModule';
 import { useCurrency } from '@/lib/CurrencyContext';
 import { formatPrice } from '@/lib/formatPrice';
 import { CurrencySelector } from './CurrencySelector';
+import { CircuitLayout } from './CircuitLayout';
+import { QuickActionBar } from './QuickActionBar';
 
 interface BlueprintDashboardProps {
   data: any;
@@ -34,6 +36,7 @@ interface BlueprintDashboardProps {
 export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashboardProps) {
   const { selectedCurrency, convert } = useCurrency();
   const [packedItems, setPackedItems] = useState<Record<number, boolean>>({});
+  const [transportMode, setTransportMode] = useState<'train' | 'car'>('train');
 
   const toggleItem = (index: number) => {
     setPackedItems(prev => ({
@@ -59,8 +62,12 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     return `${symbol}${Math.round(minConverted)} - ${symbol}${Math.round(maxConverted)}`;
   };
 
+  const openInMaps = (coords: { lat: number, lng: number }, label: string) => {
+    window.open(`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`, '_blank');
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-accent selection:text-white print:bg-white print:text-black">
+    <div className="min-h-screen bg-background text-foreground selection:bg-accent selection:text-white print:bg-white print:text-black pb-24 md:pb-0">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50 print:static print:border-none print:bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,9 +106,10 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
             <div className="flex gap-8 h-12 items-center text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
               <a href="#budget" className="hover:text-accent transition-colors">01. Budget</a>
               <a href="#stay" className="hover:text-accent transition-colors">02. Stay Zones</a>
-              <a href="#weather" className="hover:text-accent transition-colors">03. Weather</a>
-              <a href="#logistics" className="hover:text-accent transition-colors">04. Logistics</a>
-              <a href="#checklist" className="hover:text-accent transition-colors">05. Checklist</a>
+              <a href="#circuit" className="hover:text-accent transition-colors">03. Circuit map</a>
+              <a href="#weather" className="hover:text-accent transition-colors">04. Weather</a>
+              <a href="#logistics" className="hover:text-accent transition-colors">05. Logistics</a>
+              <a href="#checklist" className="hover:text-accent transition-colors">06. Checklist</a>
             </div>
           </div>
         </nav>
@@ -175,9 +183,19 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
               return (
                 <div key={i} className={`${gridClass} flex flex-col border border-border bg-card/30 rounded-2xl overflow-hidden group hover:border-accent transition-colors print:border-black`}>
                   <div className="p-6 border-b border-border bg-card/50 print:bg-white flex justify-between items-start">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-accent block mb-1">Option 0{i+1}</span>
-                      <h3 className="text-xl font-bold tracking-tight">{zone.neighborhood}</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-accent block mb-1">Option 0{i+1}</span>
+                        <h3 className="text-xl font-bold tracking-tight">{zone.neighborhood}</h3>
+                      </div>
+                      {zone.coordinates && (
+                        <button 
+                          onClick={() => openInMaps(zone.coordinates, zone.neighborhood)}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg text-[10px] font-bold uppercase tracking-widest hover:border-accent transition-colors print:hidden"
+                        >
+                          <MapIcon className="w-3 h-3 text-accent" /> Open in Maps
+                        </button>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <div className="px-2 py-1 bg-accent/10 rounded flex items-center gap-1">
@@ -209,6 +227,11 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
           </div>
         </section>
 
+        {/* Circuit Layout SVG Section */}
+        <section id="circuit" className="scroll-mt-36 print:page-break-before">
+           <CircuitLayout gpKey={gpKey} />
+        </section>
+
         {/* Weather Intelligence Module */}
         <section id="weather" className="scroll-mt-36 print:page-break-before">
           <WeatherModule 
@@ -222,9 +245,27 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
         <section id="logistics" className="scroll-mt-36 print:page-break-before">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
             <div>
-              <div className="flex items-center gap-3 mb-8 print:border-b-2 print:border-accent print:pb-2">
-                <Calendar className="w-5 h-5 text-accent" />
-                <h2 className="text-2xl font-extrabold tracking-tighter uppercase">Transport Timeline</h2>
+              <div className="flex items-center justify-between mb-8 print:border-b-2 print:border-accent print:pb-2">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-accent" />
+                  <h2 className="text-2xl font-extrabold tracking-tighter uppercase">Transport Timeline</h2>
+                </div>
+                
+                {/* Transport Mode Toggle */}
+                <div className="flex bg-card border border-border p-1 rounded-lg print:hidden">
+                  <button 
+                    onClick={() => setTransportMode('train')}
+                    className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-md ${transportMode === 'train' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Train
+                  </button>
+                  <button 
+                    onClick={() => setTransportMode('car')}
+                    className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-md ${transportMode === 'car' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Car
+                  </button>
+                </div>
               </div>
               
               {/* Vertical Step Connector */}
@@ -232,13 +273,16 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-accent/20 print:bg-black/20" />
                 
                 <div className="space-y-12">
-                  {Object.entries(data.transportTimeline).map(([day, times]: [string, any], i) => (
+                  {Object.entries(data.transportTimeline[transportMode]).map(([day, times]: [string, any], i) => (
                     <div key={day} className="relative pl-10">
                       {/* Step Anchor */}
                       <div className="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-accent border-4 border-background print:border-white shadow-[0_0_10px_#E10600] z-10" />
                       
                       <div className="space-y-4">
-                        <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent block">{day}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent block">{day}</span>
+                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{times.note}</span>
+                        </div>
                         <div className="grid grid-cols-2 gap-8 bg-card/20 p-6 rounded-xl border border-border/50">
                           <div className="space-y-1">
                             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block">Departure</span>
@@ -253,6 +297,20 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Navigation Deep Link for Circuit */}
+              <div className="mt-12 p-6 bg-accent/5 border border-accent/10 rounded-xl flex items-center justify-between print:hidden">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Navigation Shortcut</p>
+                  <p className="text-sm font-bold">Launch directly to Main Circuit Gate</p>
+                </div>
+                <button 
+                  onClick={() => openInMaps(data.coordinates, data.name)}
+                  className="bg-accent text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all"
+                >
+                   Open in Maps
+                </button>
               </div>
             </div>
             
@@ -327,13 +385,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
         </footer>
       </main>
 
-      {/* Mobile Floating Button */}
-      <button 
-        onClick={() => window.print()}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-accent text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-[100] md:hidden print:hidden"
-      >
-        <Download className="w-6 h-6" />
-      </button>
+      <QuickActionBar emergencyInfo={data.emergencyInfo} />
 
       <style jsx global>{`
         @media print {
@@ -395,4 +447,5 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     </div>
   );
 }
+
 
