@@ -197,6 +197,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                           <MapIcon className="w-3 h-3 text-accent group-hover/map:text-[#E10600] transition-colors" /> View in Maps
                         </button>
                       </div>
+                    </div>
                     <div className="flex gap-2">
                       <div className="px-2 py-1 bg-accent/10 rounded flex items-center gap-1">
                         <Zap className="w-3 h-3 text-accent" />
