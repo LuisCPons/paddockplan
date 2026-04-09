@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Modal } from './Modal';
 import { Check, Mail, UserIcon, ArrowRight, ShieldCheck, CheckCircle2, Clock, Download } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 interface AccessModalProps {
   isOpen: boolean;
@@ -27,7 +27,8 @@ function SuccessDetector({ onSetStage }: { onSetStage: (stage: CheckoutStage) =>
 }
 
 export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProps) {
-  const [stage, setStage] = useState<CheckoutStage>('form');
+  const [isPaying, setIsPaying] = useState(false);
+  const router = useRouter();
 
   const handleLeadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +40,22 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
     }, 1500);
   };
 
+  const handlePayment = () => {
+    setIsPaying(true);
+    // Simulate payment processing delay
+    setTimeout(() => {
+      // Redirect to Monza blueprint (mocking successful purchase)
+      router.push('/blueprint/monza');
+    }, 1200);
+  };
+
   const handleClose = () => {
     onClose();
     // Reset stage after modal is closed
     setTimeout(() => {
       if (stage !== 'success') {
         setStage('form');
+        setIsPaying(false);
       }
     }, 400);
   };
@@ -153,12 +164,22 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
             <p className="text-foreground/60 mb-10 max-w-sm mx-auto font-light text-sm leading-relaxed">
               Your custom {defaultGP} blueprint is ready. Click below to proceed to our secure checkout partner.
             </p>
-            <a 
-              href="https://checkout.paddockplan.com/buy/premium" // Placeholder URL
-              className="w-full bg-[#E10600] text-white font-bold text-xs uppercase tracking-[0.2em] py-6 shadow-[0_0_20px_rgba(225,6,0,0.3)] hover:scale-[1.02] transition-all flex justify-center items-center gap-3"
+            <button 
+              onClick={handlePayment}
+              disabled={isPaying}
+              className="w-full bg-[#E10600] text-white font-bold text-xs uppercase tracking-[0.2em] py-6 shadow-[0_0_20px_rgba(225,6,0,0.3)] hover:scale-[1.02] disabled:scale-100 disabled:opacity-80 transition-all flex justify-center items-center gap-3"
             >
-              Proceed to Secure Payment (€19) <ArrowRight className="w-4 h-4" />
-            </a>
+              {isPaying ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Securing Connection...
+                </>
+              ) : (
+                <>
+                  Proceed to Secure Payment (€19) <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
             <p className="mt-6 text-[10px] text-zinc-500 uppercase font-bold tracking-widest flex items-center gap-2">
               <Clock className="w-3 h-3" /> Limited time price for the 2026 season
             </p>
