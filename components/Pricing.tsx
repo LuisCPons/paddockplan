@@ -11,23 +11,24 @@ const TIERS = [
     price: 'Free',
     description: 'Essential teaser data to start your weekend planning.',
     features: [
-      'Budget Range',
-      'Suggested Ticket',
-      '3 Pro-Tips'
+      'Basic Budget Range',
+      'General Ticket Advice',
+      '3 Surface-level Tips'
     ],
     cta: 'Get Started',
     popular: false
   },
   {
-    name: 'Full Weekend Plan',
+    name: 'Full Weekend Blueprint',
     price: '€19',
     period: 'one-time',
     description: 'The definitive digital blueprint for your entire trip.',
     features: [
-      'Detailed Budget Breakdown',
-      'Recommended Stay Zones (Map)',
-      'Transport & Access Logistics',
-      'Downloadable Checklist'
+      'Detailed 12-page Digital PDF',
+      'Precise Expense Breakdown',
+      'Stay Area Heatmaps',
+      'Transport Timelines',
+      '2026 Season Checklist'
     ],
     cta: 'Acquire Full Plan',
     popular: true
@@ -75,7 +76,7 @@ export function Pricing() {
               >
                 {tier.popular && (
                   <div className="absolute top-0 right-8 -translate-y-1/2 bg-accent text-white text-[10px] font-bold px-3 py-1 uppercase tracking-[0.2em]">
-                    Recommended
+                    Highly Popular for Monza
                   </div>
                 )}
                 

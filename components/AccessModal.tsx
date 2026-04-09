@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Modal } from './Modal';
-import { Check, Mail, UserIcon, ArrowRight, ShieldCheck, CheckCircle2, Clock } from 'lucide-react';
+import { Check, Mail, UserIcon, ArrowRight, ShieldCheck, CheckCircle2, Clock, Download } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 interface AccessModalProps {
@@ -176,20 +176,27 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", bounce: 0.5 }}
-              className="w-20 h-20 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mb-8"
+              className="w-20 h-20 bg-accent/10 border border-accent/20 rounded-full flex items-center justify-center mb-8"
             >
-              <Check className="w-10 h-10 text-green-500" />
+              <Download className="w-10 h-10 text-accent" />
             </motion.div>
-            <h2 className="text-3xl font-extrabold tracking-tighter mb-4">Welcome to the Paddock</h2>
+            <h2 className="text-3xl font-extrabold tracking-tighter mb-4">Your Blueprint is Ready</h2>
             <p className="text-foreground/60 mb-10 max-w-xs mx-auto font-light text-sm leading-relaxed">
-              Your payment was successful. Check your email for your custom logistics blueprint and dashboard access.
+              Your custom 12-page logistics guide has been generated and is ready for download.
             </p>
-            <button 
-              onClick={handleClose}
-              className="bg-transparent border border-foreground text-foreground font-bold text-xs uppercase tracking-widest px-10 py-4 hover:bg-foreground hover:text-background transition-colors"
-            >
-              Enter Dashboard
-            </button>
+            <div className="w-full space-y-4">
+              <button 
+                className="w-full bg-foreground text-background font-bold text-xs uppercase tracking-widest py-5 hover:bg-black transition-colors flex justify-center items-center gap-3"
+              >
+                Download Digital Blueprint <Download className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={handleClose}
+                className="w-full bg-transparent border border-border text-foreground/60 font-bold text-[10px] uppercase tracking-widest py-3 hover:text-foreground transition-colors"
+              >
+                Enter Member Dashboard
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
