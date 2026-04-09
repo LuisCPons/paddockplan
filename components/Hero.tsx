@@ -174,31 +174,44 @@ function CircuitSchematicEngine() {
           style={{ aspectRatio: currentCircuit.aspect }}
         >
           <svg 
+            key={currentCircuit.name}
             viewBox={currentCircuit.viewBox} 
             className="w-full h-full drop-shadow-[0_0_40px_rgba(225,6,0,0.2)]"
           >
-            {/* The Authentic Path Layer */}
+            {/* Path A: Static Background */}
             <motion.path
               d={currentCircuit.path}
               fill="none"
-              stroke="rgba(255,255,255,0.05)"
-              strokeWidth="4"
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             
-            {/* Pulsing Tactical Layer */}
+            {/* Path B: Animated Progress (Live Trace) */}
             <motion.path
               d={currentCircuit.path}
               fill="none"
               stroke="#E10600"
-              strokeWidth="3"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              initial={currentCircuit.isReverse ? { pathLength: 0, pathOffset: 1 } : { pathLength: 0 }}
-              animate={currentCircuit.isReverse ? { pathLength: 1, pathOffset: 0 } : { pathLength: 1 }}
-              transition={{ duration: currentCircuit.duration, ease: "easeInOut" }}
-              className="opacity-40"
+              initial={currentCircuit.isReverse ? { 
+                pathLength: 0, 
+                pathOffset: parseFloat(currentCircuit.startOffset) / 100 
+              } : { 
+                pathLength: 0 
+              }}
+              animate={currentCircuit.isReverse ? { 
+                pathLength: 1, 
+                pathOffset: (parseFloat(currentCircuit.startOffset) / 100) - 1 
+              } : { 
+                pathLength: 1 
+              }}
+              transition={{ 
+                duration: currentCircuit.duration, 
+                ease: "linear"
+              }}
             />
             
             {/* Telemetry Pointer (Red Dot) */}
@@ -207,7 +220,7 @@ function CircuitSchematicEngine() {
               fill="#E10600"
               className="shadow-[0_0_15px_#E10600]"
               initial={{ offsetDistance: currentCircuit.startOffset || "0%" }}
-              animate={{ offsetDistance: currentCircuit.isReverse ? "-8%" : "100%" }}
+              animate={{ offsetDistance: currentCircuit.isReverse ? `${parseFloat(currentCircuit.startOffset) - 100}%` : "100%" }}
               onAnimationComplete={handleLapComplete}
               transition={{ 
                 duration: currentCircuit.duration, 
