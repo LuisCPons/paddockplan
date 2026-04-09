@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AccessModal } from './AccessModal';
-import { Ticket, Home, Lightbulb, ArrowRight, CircleDollarSign, Map, Clock } from 'lucide-react';
+import { Ticket, Home, Lightbulb, ArrowRight, CircleDollarSign, Map, Clock, Lock } from 'lucide-react';
 
 /**
  * MDODULARITY NOTE:
@@ -311,6 +311,63 @@ export function QuickPlanner() {
                  Unlock Full Weekend Plan <ArrowRight className="w-4 h-4" />
                </motion.button>
             </div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-16 w-full relative"
+            >
+              <div className="text-center mb-10">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Premium Blueprint Preview</span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-40 blur-[2px] pointer-events-none select-none">
+                {/* Card A: Budget */}
+                <div className="p-6 border border-border bg-background/50 space-y-4">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Precise Expense Breakdown</p>
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="flex justify-between border-b border-border/50 pb-2">
+                        <div className="h-2 w-16 bg-muted rounded" />
+                        <div className="h-2 w-8 bg-muted rounded" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card B: Map */}
+                <div className="p-6 border border-border bg-background/50 flex flex-col items-center justify-center min-h-[160px] relative overflow-hidden">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-4 absolute top-6 left-6">Stay Area Heatmap</p>
+                  <div className="w-24 h-24 border-2 border-dashed border-muted rotate-45 flex items-center justify-center">
+                    <div className="w-12 h-12 bg-accent/20 rounded-full blur-xl" />
+                  </div>
+                </div>
+
+                {/* Card C: Logistics */}
+                <div className="p-6 border border-border bg-background/50 space-y-4">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Arrival & Circuit Logistics</p>
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex gap-2 items-start">
+                        <div className="w-1.5 h-1.5 rounded-full bg-muted mt-1" />
+                        <div className="h-2 flex-1 bg-muted rounded" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Glass Overlay */}
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/20 backdrop-blur-[4px] border border-white/5 shadow-2xl">
+                <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(204,0,0,0.4)]">
+                  <Lock className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-sm font-bold tracking-tight text-white mb-1">Premium Blueprint Locked</p>
+                <p className="text-[11px] text-white/60 font-medium">Upgrade to see your custom 12-page blueprint.</p>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       </div>

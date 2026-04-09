@@ -71,7 +71,7 @@ export function Pricing() {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
                 }}
                 whileHover={{ y: -8 }}
-                className={`relative flex flex-col p-10 border transition-colors bg-card ${tier.popular ? 'border-accent shadow-lg shadow-accent/5' : 'border-border hover:border-muted-foreground'}`}
+                className={`relative flex flex-col p-10 border transition-all duration-500 bg-card ${tier.popular ? 'border-accent shadow-[0_0_40px_rgba(204,0,0,0.1)] md:scale-105 z-10' : 'border-border hover:border-muted-foreground'}`}
               >
                 {tier.popular && (
                   <div className="absolute top-0 right-8 -translate-y-1/2 bg-accent text-white text-[10px] font-bold px-3 py-1 uppercase tracking-[0.2em]">
