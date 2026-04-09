@@ -234,7 +234,7 @@ function CircuitSchematicEngine() {
             />
           </svg>
         </div>
-iv>
+
         
         <div className="flex flex-col items-center gap-5">
           <motion.div 
