@@ -69,7 +69,7 @@ export function Hero() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="#guides" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-transparent border border-border text-foreground px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:border-accent transition-all duration-300">
-                View Tactics
+                View Details
               </Link>
             </motion.div>
 
@@ -122,19 +122,32 @@ export function Hero() {
   );
 }
 
-// Minimalist Rotating Schematic Component
+// High-Fidelity Lapping Engine Component
 function CircuitSchematicEngine() {
   const [index, setIndex] = useState(0);
+  const [lapComplete, setLapComplete] = useState(false);
+  
+  // Accurate Track Geometry (SVG Path Data)
   const circuits = [
-    { name: 'Monza', path: "M 30,50 L 70,50 C 80,50 90,60 90,70 L 90,80 C 90,90 80,90 70,90 L 30,90 C 20,90 10,80 10,70 L 10,30 C 10,20 20,10 30,10 L 40,10 C 50,10 60,20 60,30 L 60,40 C 60,50 50,50 40,50 Z" },
-    { name: 'Silverstone', path: "M 20,40 L 40,20 L 80,20 L 90,50 L 70,80 L 40,80 L 20,60 Z" },
-    { name: 'Barcelona', path: "M 10,40 L 30,20 L 60,20 L 90,40 L 90,70 L 60,90 L 30,90 L 10,70 Z" }
+    { 
+      name: 'Monza', 
+      path: "M 50,20 L 85,20 C 95,20 100,25 100,35 L 100,60 C 100,75 90,80 80,80 L 20,80 C 10,80 5,75 5,60 L 5,35 C 5,25 10,20 20,20 L 35,20 L 35,30 C 35,40 25,40 25,50 C 25,60 35,60 35,70" 
+    },
+    { 
+      name: 'Silverstone', 
+      path: "M 10,30 L 30,10 L 60,10 L 90,30 L 90,70 L 70,90 L 30,90 L 10,70 L 10,50 L 30,30 L 50,30 L 50,50 L 30,50" 
+    },
+    { 
+      name: 'Barcelona', 
+      path: "M 20,20 L 80,20 C 90,20 95,30 95,45 L 95,60 C 95,75 85,85 70,85 L 30,85 C 15,85 10,75 10,60 L 10,40 C 10,25 20,15 35,15 L 50,40 L 70,40 L 50,60" 
+    }
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % circuits.length);
-    }, 5000);
+      setLapComplete(false);
+    }, 5000); // 2.5s lap + 2.5s idle/fade
     return () => clearInterval(timer);
   }, []);
 
@@ -142,31 +155,67 @@ function CircuitSchematicEngine() {
     <AnimatePresence mode="wait">
       <motion.div
         key={index}
-        initial={{ opacity: 0, rotateY: -90, scale: 0.8 }}
-        animate={{ opacity: 1, rotateY: 0, scale: 1 }}
-        exit={{ opacity: 0, rotateY: 90, scale: 0.8 }}
-        transition={{ 
-          opacity: { duration: 1 },
-          rotateY: { duration: 5, ease: "linear" },
-          scale: { duration: 1 }
-        }}
-        className="w-full h-full flex flex-col items-center justify-center gap-8"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ duration: 1 }}
+        className="w-full h-full flex flex-col items-center justify-center gap-12"
       >
-        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_20px_rgba(225,6,0,0.3)]">
-          <motion.path
-            d={circuits[index].path}
-            fill="none"
-            stroke="#E10600"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 2, ease: "easeInOut" }}
-          />
-        </svg>
-        <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-white/40">
-          Circuit: <span className="text-white">{circuits[index].name}</span>
+        <div className="relative w-full h-full">
+          <svg viewBox="0 0 110 110" className="w-full h-full drop-shadow-[0_0_20px_rgba(225,6,0,0.3)]">
+            {/* The Accurate Path */}
+            <motion.path
+              id="f1-track"
+              d={circuits[index].path}
+              fill="none"
+              stroke="#2A2A2A"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Pulsing Active Layer */}
+            <motion.path
+              d={circuits[index].path}
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 2, ease: "easeInOut" }}
+            />
+            
+            {/* The Mini F1 Car (Red Dot) */}
+            <motion.circle
+              r="2.5"
+              fill="#E10600"
+              className="shadow-[0_0_10px_#E10600]"
+              initial={{ offsetDistance: "0%" }}
+              animate={{ offsetDistance: "100%" }}
+              transition={{ 
+                duration: 2.5, 
+                ease: "linear",
+                repeat: 0
+              }}
+              style={{
+                offsetPath: `path("${circuits[index].path}")`,
+              }}
+            />
+          </svg>
+        </div>
+        
+        <div className="flex flex-col items-center gap-2">
+          <motion.div 
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="font-mono text-[9px] uppercase tracking-[0.4em] text-accent font-bold"
+          >
+            Generating telemetry...
+          </motion.div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-white/40">
+            Circuit: <span className="text-white">{circuits[index].name}</span>
+          </div>
         </div>
       </motion.div>
     </AnimatePresence>
