@@ -325,9 +325,6 @@ export function QuickPlanner() {
                   </div>
                 </div>
               </div>
-              
-                </div>
-              </div>
 
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -407,9 +404,8 @@ export function QuickPlanner() {
                 </div>
               </motion.div>
             </div>
-          </div>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
       <AccessModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} defaultGP={results.gpName} />
     </section>
   );
