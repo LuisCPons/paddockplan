@@ -40,5 +40,5 @@ export default async function BlueprintPage({ params }: { params: Promise<{ gp: 
 
   const totalBudget = calculateTotal();
 
-  return <BlueprintDashboard data={data} totalBudget={totalBudget} />;
+  return <BlueprintDashboard data={data} totalBudget={totalBudget} gpKey={gpKey} />;
 }

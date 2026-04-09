@@ -20,12 +20,15 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { WeatherModule } from './WeatherModule';
+
 interface BlueprintDashboardProps {
   data: any;
   totalBudget: number;
+  gpKey: string;
 }
 
-export function BlueprintDashboard({ data, totalBudget }: BlueprintDashboardProps) {
+export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashboardProps) {
   const [packedItems, setPackedItems] = useState<Record<number, boolean>>({});
 
   const toggleItem = (index: number) => {
@@ -76,8 +79,9 @@ export function BlueprintDashboard({ data, totalBudget }: BlueprintDashboardProp
             <div className="flex gap-8 h-12 items-center text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
               <a href="#budget" className="hover:text-accent transition-colors">01. Budget</a>
               <a href="#stay" className="hover:text-accent transition-colors">02. Stay Zones</a>
-              <a href="#logistics" className="hover:text-accent transition-colors">03. Logistics</a>
-              <a href="#checklist" className="hover:text-accent transition-colors">04. Checklist</a>
+              <a href="#weather" className="hover:text-accent transition-colors">03. Weather</a>
+              <a href="#logistics" className="hover:text-accent transition-colors">04. Logistics</a>
+              <a href="#checklist" className="hover:text-accent transition-colors">05. Checklist</a>
             </div>
           </div>
         </nav>
@@ -178,6 +182,11 @@ export function BlueprintDashboard({ data, totalBudget }: BlueprintDashboardProp
               );
             })}
           </div>
+        </section>
+
+        {/* Weather Intelligence Module */}
+        <section id="weather" className="scroll-mt-36 print:page-break-before">
+          <WeatherModule gpKey={gpKey} month={data.raceMonth} />
         </section>
 
         {/* Logistics Section */}
