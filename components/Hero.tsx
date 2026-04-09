@@ -149,7 +149,7 @@ function CircuitSchematicEngine() {
       aspect: "791.4/426.5",
       duration: 3.0,
       isReverse: true,
-      startOffset: "92%" // Approximately middle of the long lower straight
+      startOffset: "92%"
     }
   ];
 
@@ -195,9 +195,9 @@ function CircuitSchematicEngine() {
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 1.5, ease: "easeInOut" }}
+              initial={currentCircuit.isReverse ? { pathLength: 0, pathOffset: 1 } : { pathLength: 0 }}
+              animate={currentCircuit.isReverse ? { pathLength: 1, pathOffset: 0 } : { pathLength: 1 }}
+              transition={{ duration: currentCircuit.duration, ease: "easeInOut" }}
               className="opacity-40"
             />
             
