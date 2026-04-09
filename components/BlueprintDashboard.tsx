@@ -190,13 +190,13 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                       <div>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-accent block mb-1">Option 0{i+1}</span>
                         <h3 className="text-xl font-bold tracking-tight">{zone.neighborhood}</h3>
-                                <button 
-                        onClick={() => openInMaps(zone)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg text-[10px] font-bold uppercase tracking-widest hover:border-[#E10600] group/map transition-colors print:hidden"
-                      >
-                        <MapIcon className="w-3 h-3 text-accent group-hover/map:text-[#E10600] transition-colors" /> View in Maps
-                      </button>
-                    </div>
+                        <button 
+                          onClick={() => openInMaps(zone)}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg text-[10px] font-bold uppercase tracking-widest hover:border-[#E10600] group/map transition-colors print:hidden"
+                        >
+                          <MapIcon className="w-3 h-3 text-accent group-hover/map:text-[#E10600] transition-colors" /> View in Maps
+                        </button>
+                      </div>
                     <div className="flex gap-2">
                       <div className="px-2 py-1 bg-accent/10 rounded flex items-center gap-1">
                         <Zap className="w-3 h-3 text-accent" />
@@ -335,6 +335,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                        <MapIcon className="w-3 h-3 transition-colors group-hover/nav:text-[#E10600]" /> Open in Maps
                     </button>
                   </div>
+                </motion.div>
               </AnimatePresence>
             </div>
             
