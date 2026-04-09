@@ -9,8 +9,7 @@ export async function generateStaticParams() {
 }
 
 export default async function BlueprintPage({ params }: { params: Promise<{ gp: string }> }) {
-  const resolvedParams = await params;
-  const gpKey = resolvedParams?.gp?.toLowerCase();
+  const gpKey = (await params).gp.toLowerCase();
   
   if (!gpKey) {
     notFound();
