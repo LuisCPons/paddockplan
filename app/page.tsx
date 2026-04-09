@@ -7,9 +7,7 @@ import { Pricing } from '@/components/Pricing';
 import { FAQ } from '@/components/FAQ';
 import { Footer } from '@/components/Footer';
 
-// Use Next.js 16 optimal performance rules for instant client navigation
-export const unstable_instant = { prefetch: 'static' };
-
+ 
 export default function Home() {
   return (
     <>
