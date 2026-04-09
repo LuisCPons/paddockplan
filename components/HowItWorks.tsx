@@ -5,23 +5,23 @@ import { motion } from 'motion/react';
 const STEPS = [
   {
     num: '01',
-    title: 'Select GP & Style',
-    description: "Use the interactive planner to define your trip's DNA."
+    title: 'Configure Your Trip',
+    description: "Use the interactive planner to define your budget, stay style, and race goals."
   },
   {
     num: '02',
-    title: 'Generate Blueprint',
-    description: 'Our engine processes local data, transport timelines, and stay zones.'
+    title: 'Generate Logistics',
+    description: 'Our engine processes local transport timelines, cost data, and stay zones for your specific GP.'
   },
   {
     num: '03',
-    title: 'Unlock Premium Access',
-    description: 'Get your 12-page custom PDF with precise logistics and maps.'
+    title: 'Unlock the Blueprint',
+    description: 'Get instant access to your 12-page custom PDF with heatmaps, checklists, and precise budgets.'
   },
   {
     num: '04',
-    title: 'Race Weekend',
-    description: 'Navigate the circuit like a local with your mobile-ready guide.'
+    title: 'Race Like a Local',
+    description: 'Navigate the circuit and the city with confidence using your digital companion guide.'
   }
 ];
 

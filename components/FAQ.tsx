@@ -6,12 +6,12 @@ import { Plus } from 'lucide-react';
 
 const FAQS = [
   {
-    q: 'Do you sell race tickets directly?',
-    a: 'PaddockPlan is an independent digital planning tool. We do not sell tickets. We provide the expert data you need to buy the right tickets and book the best hotels yourself.'
+    q: 'Does PaddockPlan sell tickets?',
+    a: 'No. PaddockPlan is a 100% independent planning tool. we provide the data you need to buy the right tickets and book the best hotels yourself, avoiding common rookie mistakes.'
   },
   {
     q: 'Can you help with flights and accommodation?',
-    a: 'We provide strategic advice on when to book and which areas to stay in for maximum efficiency. Our blueprint includes precise stay zone heatmaps and transport timelines so you can book with confidence.'
+    a: 'We provide expert recommendations and stay zone heatmaps based on local logistics. We do not offer booking services, ensuring our advice remains 100% unbiased and focused on your efficiency.'
   },
   {
     q: 'Which races do you cover?',

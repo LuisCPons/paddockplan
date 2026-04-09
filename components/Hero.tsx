@@ -48,15 +48,15 @@ export function Hero() {
               variants={itemVariants}
               className="text-5xl md:text-7xl font-bold tracking-tighter mb-8 leading-[1.05] text-foreground font-manrope"
             >
-              Redefining <br className="hidden md:block" />
-              The <span className="italic font-light text-accent">Race</span> Weekend.
+              The Definitive <br className="hidden md:block" />
+              Digital <span className="italic font-light text-accent">Blueprint</span> for Grand Prix Fans.
             </motion.h1>
 
             <motion.p 
               variants={itemVariants}
               className="text-lg md:text-xl text-muted-foreground mb-10 max-w-xl font-light leading-relaxed font-inter"
             >
-              The definitive digital blueprint for the modern Grand Prix fan. Move from scattered tabs to a professional 12-page weekend plan in minutes.
+              Move from scattered tabs to a professional 12-page weekend plan in minutes. Independent, expert-backed, and mobile-ready.
             </motion.p>
 
             <motion.div 
