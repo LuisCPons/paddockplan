@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Modal } from './Modal';
 import { Check, Mail, UserIcon, ArrowRight, ShieldCheck, CheckCircle2, Clock } from 'lucide-react';
@@ -14,15 +14,20 @@ interface AccessModalProps {
 
 type CheckoutStage = 'form' | 'transition' | 'checkout' | 'success';
 
-export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProps) {
-  const [stage, setStage] = useState<CheckoutStage>('form');
+function SuccessDetector({ onSetStage }: { onSetStage: (stage: CheckoutStage) => void }) {
   const searchParams = useSearchParams();
-
+  
   useEffect(() => {
     if (searchParams.get('status') === 'success') {
-      setStage('success');
+      onSetStage('success');
     }
-  }, [searchParams]);
+  }, [searchParams, onSetStage]);
+
+  return null;
+}
+
+export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProps) {
+  const [stage, setStage] = useState<CheckoutStage>('form');
 
   const handleLeadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +51,9 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
+      <Suspense fallback={null}>
+        <SuccessDetector onSetStage={setStage} />
+      </Suspense>
       <AnimatePresence mode="wait">
         {stage === 'form' && (
           <motion.div
