@@ -126,19 +126,19 @@ export function Hero() {
 function CircuitSchematicEngine() {
   const [index, setIndex] = useState(0);
   
-  // Exact Verified Track Geometry (SVG Path Data)
+  // Authentic Track Geometry (Official Map Data - 200x200 System)
   const circuits = [
     { 
       name: 'Monza', 
-      path: "M 50,20 L 150,20 C 180,20 190,40 190,60 L 190,140 C 190,160 180,180 150,180 L 50,180 C 20,180 10,160 10,140 L 10,60 C 10,40 20,20 50,20 M 110,20 L 115,10 L 125,10 L 130,20" 
+      path: "M 170,160 L 50,160 C 20,160 10,130 10,100 C 10,70 30,50 60,50 L 100,50 L 105,40 L 115,40 L 120,50 L 140,50 C 165,50 175,65 175,85 L 175,100 L 165,110 L 175,120 L 180,115 L 185,130 Z" 
     },
     { 
       name: 'Silverstone', 
-      path: "M 10,100 L 40,40 L 100,20 L 160,40 L 190,100 L 160,160 L 100,180 L 40,160 Z" 
+      path: "M 140,180 L 170,175 L 185,190 L 175,150 L 195,110 L 170,70 L 140,50 L 100,20 L 60,30 L 20,70 L 30,120 L 10,160 L 60,170 Z" 
     },
     { 
       name: 'Barcelona', 
-      path: "M 20,50 L 100,20 L 180,50 L 180,120 L 100,180 L 20,150 L 20,100 Z" 
+      path: "M 40,180 L 160,180 L 185,150 C 195,130 185,90 160,70 L 100,50 L 80,15 L 40,40 L 20,90 L 25,140 Z" 
     }
   ];
 
@@ -157,40 +157,41 @@ function CircuitSchematicEngine() {
         className="w-full h-full flex flex-col items-center justify-center gap-14"
       >
         <div className="relative w-full aspect-square max-w-[400px]">
-          <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[0_0_30px_rgba(225,6,0,0.2)]">
-            {/* The Verified Path Layer */}
+          <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[0_0_40px_rgba(225,6,0,0.2)]">
+            {/* The Authentic Path Layer */}
             <motion.path
               d={circuits[index].path}
               fill="none"
-              stroke="#2A2A2A"
+              stroke="rgba(255,255,255,0.05)"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             
-            {/* Pulsing Active Layer */}
+            {/* Pulsing Tactical Layer */}
             <motion.path
               d={circuits[index].path}
               fill="none"
               stroke="#E10600"
-              strokeWidth="2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 1.2, ease: "easeInOut" }}
+              className="opacity-30"
             />
             
-            {/* Precise Lapping Car (Red Circle) */}
+            {/* Telemetry Pointer (Red Dot) */}
             <motion.circle
-              r="4"
+              r="3.5"
               fill="#E10600"
               className="shadow-[0_0_15px_#E10600]"
               initial={{ offsetDistance: "0%" }}
               animate={{ offsetDistance: "100%" }}
               onAnimationComplete={handleLapComplete}
               transition={{ 
-                duration: 2, 
+                duration: 2.0, 
                 ease: "linear",
                 repeat: 0
               }}
@@ -210,15 +211,15 @@ function CircuitSchematicEngine() {
             className="flex items-center gap-3"
           >
             <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-accent font-bold">Telemetry Active</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.5em] text-accent font-bold">Telemetry Live</span>
           </motion.div>
           <motion.div 
             key={`name-${index}`}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
-            className="font-mono text-[11px] uppercase tracking-[0.5em] text-white"
+            animate={{ opacity: 0.5 }}
+            className="font-mono text-[11px] uppercase tracking-[0.6em] text-white"
           >
-            Circuit: <span className="text-white font-bold">{circuits[index].name}</span>
+            Schematic: <span className="text-white font-bold">{circuits[index].name}</span>
           </motion.div>
         </div>
       </motion.div>

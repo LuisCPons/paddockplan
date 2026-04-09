@@ -30,7 +30,7 @@ export function FAQ() {
     <section id="race-control" className="py-24 md:py-32 bg-background border-t border-zinc-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">Command Center</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">RACE CONTROL</span>
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4 text-foreground">FAQ at Race Control</h2>
         </div>
 

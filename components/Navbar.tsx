@@ -17,7 +17,7 @@ export function Navbar() {
             <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity group">
               <div className="w-10 h-10 flex items-center justify-center">
                 <svg width="34" height="34" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M30 20V80M30 20H45C55 20 60 25 60 35C60 45 55 50 45 50C35 50 30 55 30 65C30 75 35 80 45 80" stroke="#E10600" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M35 20V80M35 20C45 20 50 25 50 35C50 45 45 50 35 50C45 50 50 55 50 65C50 75 45 80 35 80" stroke="#E10600" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
               <span className="font-manrope font-extrabold text-xl uppercase tracking-[0.1em] text-white">
@@ -28,7 +28,7 @@ export function Navbar() {
             <div className="hidden md:flex items-center space-x-12">
               <Link href="#guides" className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground hover:text-white transition-colors">GP Guides</Link>
               <Link href="#how-it-works" className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground hover:text-white transition-colors">Tactics</Link>
-              <Link href="#race-control" className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground hover:text-accent transition-colors">Race Control</Link>
+              <Link href="#race-control" className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground hover:text-accent transition-colors">RACE CONTROL</Link>
             </div>
 
             <div className="flex items-center gap-10">
@@ -37,7 +37,7 @@ export function Navbar() {
               </div>
               <button 
                 onClick={() => setIsModalOpen(true)} 
-                className="bg-accent text-white px-8 py-3.5 font-bold uppercase tracking-[0.15em] text-[10px] hover:bg-white hover:text-black transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(225,6,0,0.2)] border border-[#E10600]/20"
+                className="bg-accent text-white px-8 py-3.5 font-bold uppercase tracking-[0.15em] text-[10px] hover:bg-white hover:text-black transition-all duration-300 cursor-pointer shadow-[0_0_24px_rgba(225,6,0,0.25)] border border-[#E10600]/30"
               >
                 Access Premium
               </button>
