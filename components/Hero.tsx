@@ -46,15 +46,15 @@ export function Hero() {
 
             <motion.h1 
               variants={itemVariants}
-              className="text-5xl md:text-7xl font-extrabold tracking-tighter mb-8 leading-[1.05] text-foreground"
+              className="text-5xl md:text-7xl font-bold tracking-tighter mb-8 leading-[1.05] text-foreground font-manrope"
             >
               Redefining <br className="hidden md:block" />
-              The <span className="font-serif italic font-light text-foreground/80">Race</span> Weekend.
+              The <span className="italic font-light text-accent">Race</span> Weekend.
             </motion.h1>
 
             <motion.p 
               variants={itemVariants}
-              className="text-lg md:text-xl text-foreground/60 mb-10 max-w-xl font-light leading-relaxed"
+              className="text-lg md:text-xl text-muted-foreground mb-10 max-w-xl font-light leading-relaxed font-inter"
             >
               Curated itineraries, paddock access, and local secrets for the modern motorsport enthusiast. Elevate your Grand Prix experience.
             </motion.p>
@@ -63,11 +63,11 @@ export function Hero() {
               variants={itemVariants}
               className="flex flex-col sm:flex-row gap-6 items-start"
             >
-              <Link href="#plan" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-foreground text-background px-8 py-4 font-bold text-sm uppercase tracking-widest hover:bg-accent transition-colors duration-300">
+              <Link href="#plan" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-accent text-white px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-300">
                 Plan Your Trip
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="#guides" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-transparent border border-zinc-300 text-foreground px-8 py-4 font-bold text-sm uppercase tracking-widest hover:border-foreground transition-colors duration-300">
+              <Link href="#guides" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-transparent border border-border text-foreground px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:border-accent transition-all duration-300">
                 GP Guides
               </Link>
             </motion.div>

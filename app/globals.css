@@ -1,12 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FFFFFF; /* Pure white editorial background */
-  --foreground: #111111; /* Extremely dark charcoal for stark contrast */
-  --accent: #CC0000; /* Sophisticated deep racing red */
-  --accent-hover: #b30000;
-  --card-bg: #FFFFFF;
-  --card-border: #e4e4e7; /* tailwind zinc-200 */
+  --background: #0A0A0A; /* Deep charcoal/black */
+  --foreground: #FAFAFA; /* Off-white for high contrast */
+  --accent: #CC0000;     /* Signature Motorsport Red */
+  --accent-hover: #E60000;
+  --card-bg: #111111;    /* Slightly lighter than background */
+  --card-border: #262626; /* Subtle fine border */
+  
+  --font-manrope: var(--font-manrope);
+  --font-inter: var(--font-inter);
 }
 
 @theme inline {
@@ -16,13 +19,20 @@
   --color-accent-hover: var(--accent-hover);
   --color-card: var(--card-bg);
   --color-border: var(--card-border);
-  --font-sans: var(--font-geist-sans), "Inter", Arial, Helvetica, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  
+  --font-heading: var(--font-manrope), "Inter", Arial, sans-serif;
+  --font-body: var(--font-inter), Arial, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.03em;
 }

@@ -7,30 +7,30 @@ import { AccessModal } from './AccessModal';
 
 const TIERS = [
   {
-    name: 'Self-Guided',
+    name: 'Quick GP Plan',
     price: 'Free',
-    description: 'Basic access to our community guidelines and public track info.',
-    features: ['Public Track Information', 'Community Forum Access', 'Basic Packing List'],
-    cta: 'Join Directory',
+    description: 'Essential teaser data to start your weekend planning.',
+    features: [
+      'Budget Range',
+      'Suggested Ticket',
+      '3 Pro-Tips'
+    ],
+    cta: 'Get Started',
     popular: false
   },
   {
-    name: 'Grandstand',
-    price: '$49',
-    period: '/trip',
-    description: 'The complete self-guided itinerary for the dedicated fan.',
-    features: ['Custom Digital Itinerary', 'Interactive Track Map', 'Local Transport Guide', 'Restaurant Recommendations', 'Live Weather Alerts'],
-    cta: 'Acquire Itinerary',
+    name: 'Full Weekend Plan',
+    price: '€19',
+    period: 'one-time',
+    description: 'The definitive digital blueprint for your entire trip.',
+    features: [
+      'Detailed Budget Breakdown',
+      'Recommended Stay Zones (Map)',
+      'Transport & Access Logistics',
+      'Downloadable Checklist'
+    ],
+    cta: 'Acquire Full Plan',
     popular: true
-  },
-  {
-    name: 'Paddock Club',
-    price: '$299',
-    period: '/trip',
-    description: 'Full concierge service for an unforgettable luxury weekend.',
-    features: ['Everything in Grandstand', 'VIP Ticket Sourcing', 'Hotel & Transfer Booking', '24/7 Concierge Chat', 'Exclusive Party Access'],
-    cta: 'Speak to Concierge',
-    popular: false
   }
 ];
 
@@ -39,8 +39,8 @@ export function Pricing() {
 
   return (
     <>
-      <section id="pricing" className="py-24 md:py-32 bg-background border-t border-zinc-200 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="pricing" className="py-24 md:py-32 bg-background border-t border-border overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -48,8 +48,9 @@ export function Pricing() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-center mb-20"
           >
-            <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">Services</span>
-            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-6">Select Your Experience.</h2>
+            <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">Pricing</span>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6">Execution is Everything.</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto font-light">Choose the depth of planning that fits your journey. Simple data or a professional blueprint.</p>
           </motion.div>
 
           <motion.div 
@@ -60,7 +61,7 @@ export function Pricing() {
               visible: { transition: { staggerChildren: 0.15 } },
               hidden: {}
             }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
           >
             {TIERS.map((tier) => (
               <motion.div 
@@ -70,27 +71,27 @@ export function Pricing() {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
                 }}
                 whileHover={{ y: -8 }}
-                className={`relative flex flex-col p-10 border transition-colors bg-background ${tier.popular ? 'border-foreground shadow-sm shadow-black/5' : 'border-zinc-200 hover:border-zinc-300'}`}
+                className={`relative flex flex-col p-10 border transition-colors bg-card ${tier.popular ? 'border-accent shadow-lg shadow-accent/5' : 'border-border hover:border-muted-foreground'}`}
               >
                 {tier.popular && (
-                  <div className="absolute top-0 right-8 -translate-y-1/2 bg-accent text-background text-[10px] font-bold px-3 py-1 uppercase tracking-[0.2em]">
-                    Signature
+                  <div className="absolute top-0 right-8 -translate-y-1/2 bg-accent text-white text-[10px] font-bold px-3 py-1 uppercase tracking-[0.2em]">
+                    Recommended
                   </div>
                 )}
                 
                 <div className="mb-10">
                   <h3 className="text-lg font-bold uppercase tracking-widest mb-4">{tier.name}</h3>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-5xl font-light tracking-tighter">{tier.price}</span>
-                    {tier.period && <span className="text-foreground/50 text-sm">{tier.period}</span>}
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <span className="text-5xl font-light tracking-tighter text-foreground">{tier.price}</span>
+                    {tier.period && <span className="text-muted-foreground text-sm">{tier.period}</span>}
                   </div>
-                  <p className="text-sm text-foreground/60 leading-relaxed font-light h-12">{tier.description}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed font-light h-12">{tier.description}</p>
                 </div>
 
-                <div className="flex-1 space-y-4 mb-10 border-t border-zinc-100 pt-8">
+                <div className="flex-1 space-y-4 mb-10 border-t border-border pt-8">
                   {tier.features.map((feat) => (
                     <div key={feat} className="flex items-start gap-4">
-                      <Check className={`w-4 h-4 shrink-0 mt-0.5 ${tier.popular ? 'text-accent' : 'text-zinc-300'}`} />
+                      <Check className={`w-4 h-4 shrink-0 mt-0.5 ${tier.popular ? 'text-accent' : 'text-muted-foreground'}`} />
                       <span className="text-sm font-light text-foreground/80">{feat}</span>
                     </div>
                   ))}
@@ -98,7 +99,7 @@ export function Pricing() {
 
                 <button 
                   onClick={() => setIsModalOpen(true)}
-                  className={`w-full py-4 text-xs font-bold uppercase tracking-widest transition-colors ${tier.popular ? 'bg-foreground text-background hover:bg-accent' : 'bg-[#F9F9F9] text-foreground border border-zinc-200 hover:bg-zinc-100'}`}
+                  className={`w-full py-4 text-xs font-bold uppercase tracking-widest transition-all ${tier.popular ? 'bg-accent text-white hover:bg-black' : 'bg-transparent text-foreground border border-border hover:bg-white/5'}`}
                 >
                   {tier.cta}
                 </button>
