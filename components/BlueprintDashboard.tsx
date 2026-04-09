@@ -186,7 +186,11 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
         {/* Weather Intelligence Module */}
         <section id="weather" className="scroll-mt-36 print:page-break-before">
-          <WeatherModule gpKey={gpKey} month={data.raceMonth} />
+          <WeatherModule 
+            gpKey={gpKey} 
+            month={data.raceMonth} 
+            coordinates={data.coordinates} 
+          />
         </section>
 
         {/* Logistics Section */}

@@ -1,7 +1,6 @@
-"use client";
-
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Sun, CloudRain, Thermometer, Wind, Zap, AlertTriangle, Info } from 'lucide-react';
+import { Sun, CloudRain, Thermometer, Wind, Zap, AlertTriangle, Info, Radio } from 'lucide-react';
 
 interface WeatherData {
   high: number;
@@ -19,10 +18,40 @@ const HISTORICAL_WEATHER: Record<string, WeatherData> = {
 interface WeatherModuleProps {
   gpKey: string;
   month: string;
+  coordinates: { lat: number; lng: number };
 }
 
-export function WeatherModule({ gpKey, month }: WeatherModuleProps) {
+export function WeatherModule({ gpKey, month, coordinates }: WeatherModuleProps) {
+  const [liveWeather, setLiveWeather] = useState<{ temp: number; description: string } | null>(null);
   const weather = HISTORICAL_WEATHER[gpKey.toLowerCase()] || { high: 20, low: 10, rainRisk: 'Medium', precipProb: 20 };
+
+  useEffect(() => {
+    const fetchLiveWeather = async () => {
+      try {
+        const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+        if (!apiKey) return;
+
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${coordinates.lat}&lon=${coordinates.lng}&appid=${apiKey}&units=metric`
+        );
+        const data = await response.json();
+        
+        if (data.main && data.weather) {
+          setLiveWeather({
+            temp: Math.round(data.main.temp),
+            description: data.weather[0].description
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch live weather:", error);
+      }
+    };
+
+    fetchLiveWeather();
+    // Refresh every 10 minutes
+    const interval = setInterval(fetchLiveWeather, 600000);
+    return () => clearInterval(interval);
+  }, [coordinates]);
 
   const getIntelligence = () => {
     const tips = [];
@@ -59,9 +88,19 @@ export function WeatherModule({ gpKey, month }: WeatherModuleProps) {
     <div className="p-8 border border-border bg-card/30 rounded-2xl space-y-8 relative overflow-hidden group hover:border-accent transition-colors print:border-black">
       <div className="flex items-center justify-between relative z-10">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Wind className="w-3 h-3 text-accent" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-accent">Climatic Intelligence</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Wind className="w-3 h-3 text-accent" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-accent">Climatic Intelligence</span>
+            </div>
+            {liveWeather && (
+              <div className="flex items-center gap-2 px-2 py-0.5 bg-accent/10 border border-accent/20 rounded-full animate-pulse print:hidden">
+                <Radio className="w-2.5 h-2.5 text-accent" />
+                <span className="text-[8px] font-extrabold uppercase tracking-[0.1em] text-accent">
+                  Live: {liveWeather.temp}°C {liveWeather.description}
+                </span>
+              </div>
+            )}
           </div>
           <h3 className="text-xl font-bold tracking-tight">Weather Strategy</h3>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Historical Average for {month}</p>
