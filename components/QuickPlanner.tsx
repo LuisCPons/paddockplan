@@ -280,8 +280,9 @@ export function QuickPlanner() {
                 </div>
               </motion.div>
             </AnimatePresence>
-            
-            <div className="mt-16 flex flex-col items-center border-t border-border pt-12">
+          </div>
+          
+          <div className="mt-16 flex flex-col items-center border-t border-border pt-12">
               <div className="mb-10 text-center">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent mb-6 block">Included in Premium</span>
                 <div className="flex flex-col md:flex-row gap-8 md:gap-12 justify-center">
