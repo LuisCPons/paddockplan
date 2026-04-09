@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from 'react';
 
 import { motion } from 'motion/react';
 import Link from 'next/link';
@@ -61,34 +62,116 @@ export function Hero() {
 
             <motion.div 
               variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-6 items-start"
+              className="flex flex-col sm:flex-row gap-6 items-start mb-8"
             >
-              <Link href="#plan" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-accent text-white px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-300">
-                Plan Your Trip
+              <Link href="#plan" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-accent text-white px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_30px_rgba(225,6,0,0.3)]">
+                Generate Blueprint
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="#guides" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-transparent border border-border text-foreground px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:border-accent transition-all duration-300">
-                GP Guides
+                View Tactics
               </Link>
+            </motion.div>
+
+            {/* Trust Bar */}
+            <motion.div
+              variants={itemVariants}
+              className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60"
+            >
+              <div className="flex -space-x-2">
+                {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full border border-background bg-zinc-800" />)}
+              </div>
+              <span>24 Circuits Covered • 2026 Verified Data • Professional Logistics</span>
             </motion.div>
           </motion.div>
 
-          {/* Right Image Block */}
+          {/* Right Schematic Block */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="flex-1 w-full lg:w-auto"
+            className="flex-1 w-full lg:w-auto relative group"
           >
-            <div className="relative aspect-[4/5] md:aspect-[3/4] w-full max-w-lg mx-auto lg:ml-auto group">
-              <div className="absolute inset-0 bg-accent/10 translate-x-4 translate-y-4 group-hover:translate-x-6 group-hover:translate-y-6 transition-transform duration-500" />
-              <img 
-                src="https://images.unsplash.com/photo-1542382103-6058e5ec2ad0?q=80&w=1200&auto=format&fit=crop" 
-                alt="Motorsport luxury travel"
-                className="relative z-10 w-full h-full object-cover filter contrast-[1.05] grayscale-[20%]"
-              />
+            <div className="relative aspect-square w-full max-w-xl mx-auto lg:ml-auto overflow-hidden bg-[#0A0A0A] border border-border/50 rounded-2xl shadow-2xl">
+              {/* Grid Overlay */}
+              <div className="absolute inset-0 z-0 opacity-20" style={{ 
+                backgroundImage: `linear-gradient(#1A1A1A 1px, transparent 1px), linear-gradient(90deg, #1A1A1A 1px, transparent 1px)`,
+                backgroundSize: '40px 40px'
+              }} />
+              <div className="absolute inset-0 z-0 opacity-10" style={{ 
+                backgroundImage: `linear-gradient(#2A2A2A 1px, transparent 1px), linear-gradient(90deg, #2A2A2A 1px, transparent 1px)`,
+                backgroundSize: '10px 10px'
+              }} />
+              
+              <div className="absolute inset-0 flex items-center justify-center p-12">
+                <CircuitSchematicEngine />
+              </div>
+
+              {/* Technical Labels */}
+              <div className="absolute top-6 left-6 font-mono text-[8px] uppercase tracking-widest text-accent/40">
+                Schematic: Type-26-R <br /> Scale: 1:25000
+              </div>
+              <div className="absolute bottom-6 right-6 font-mono text-[8px] uppercase tracking-widest text-accent/40">
+                Data: Verified 2026 <br /> Status: Ready
+              </div>
             </div>
           </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Minimalist Rotating Schematic Component
+function CircuitSchematicEngine() {
+  const [index, setIndex] = useState(0);
+  const circuits = [
+    { name: 'Monza', path: "M 30,50 L 70,50 C 80,50 90,60 90,70 L 90,80 C 90,90 80,90 70,90 L 30,90 C 20,90 10,80 10,70 L 10,30 C 10,20 20,10 30,10 L 40,10 C 50,10 60,20 60,30 L 60,40 C 60,50 50,50 40,50 Z" },
+    { name: 'Silverstone', path: "M 20,40 L 40,20 L 80,20 L 90,50 L 70,80 L 40,80 L 20,60 Z" },
+    { name: 'Barcelona', path: "M 10,40 L 30,20 L 60,20 L 90,40 L 90,70 L 60,90 L 30,90 L 10,70 Z" }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % circuits.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={index}
+        initial={{ opacity: 0, rotateY: -90, scale: 0.8 }}
+        animate={{ opacity: 1, rotateY: 0, scale: 1 }}
+        exit={{ opacity: 0, rotateY: 90, scale: 0.8 }}
+        transition={{ 
+          opacity: { duration: 1 },
+          rotateY: { duration: 5, ease: "linear" },
+          scale: { duration: 1 }
+        }}
+        className="w-full h-full flex flex-col items-center justify-center gap-8"
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_20px_rgba(225,6,0,0.3)]">
+          <motion.path
+            d={circuits[index].path}
+            fill="none"
+            stroke="#E10600"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 2, ease: "easeInOut" }}
+          />
+        </svg>
+        <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-white/40">
+          Circuit: <span className="text-white">{circuits[index].name}</span>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
         </div>
       </div>

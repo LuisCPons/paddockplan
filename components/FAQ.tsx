@@ -27,11 +27,11 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="py-24 md:py-32 bg-background border-t border-zinc-200">
+    <section id="race-control" className="py-24 md:py-32 bg-background border-t border-zinc-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">Inquiries</span>
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4 text-foreground">Questions?</h2>
+          <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">Command Center</span>
+          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4 text-foreground">FAQ at Race Control</h2>
         </div>
 
         <div className="border-t border-zinc-200">
