@@ -58,7 +58,7 @@ export function Footer() {
         </div>
         
         <div className="pt-8 border-t border-zinc-200 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-foreground/40 font-light text-center md:text-left">
-          <p>© {new Date().getFullYear()} PaddockPlan. All rights reserved.</p>
+          <p>© 2026 PaddockPlan. All rights reserved.</p>
           <p>An independent platform not affiliated with the FIA, Formula 1, or associated companies.</p>
         </div>
       </div>
