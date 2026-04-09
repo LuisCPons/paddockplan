@@ -36,7 +36,7 @@ interface BlueprintDashboardProps {
 export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashboardProps) {
   const { selectedCurrency, convert } = useCurrency();
   const [packedItems, setPackedItems] = useState<Record<number, boolean>>({});
-  const [transportMode, setTransportMode] = useState<'train' | 'car'>('train');
+  const [transportMode, setTransportMode] = useState<'publicTransport' | 'privateCar'>('publicTransport');
 
   const toggleItem = (index: number) => {
     setPackedItems(prev => ({
@@ -62,9 +62,12 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     return `${symbol}${Math.round(minConverted)} - ${symbol}${Math.round(maxConverted)}`;
   };
 
-  const openInMaps = (coords: { lat: number, lng: number }, label: string) => {
-    window.open(`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`, '_blank');
+  const openInMaps = (target: any) => {
+    const url = target.mapUrl || `https://www.google.com/maps/search/?api=1&query=${target.coordinates.lat},${target.coordinates.lng}`;
+    window.open(url, '_blank');
   };
+
+  const currentLogistics = data.logistics[transportMode];
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-accent selection:text-white print:bg-white print:text-black pb-24 md:pb-0">
@@ -188,14 +191,12 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                         <span className="text-[10px] font-bold uppercase tracking-widest text-accent block mb-1">Option 0{i+1}</span>
                         <h3 className="text-xl font-bold tracking-tight">{zone.neighborhood}</h3>
                       </div>
-                      {zone.coordinates && (
-                        <button 
-                          onClick={() => openInMaps(zone.coordinates, zone.neighborhood)}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg text-[10px] font-bold uppercase tracking-widest hover:border-accent transition-colors print:hidden"
-                        >
-                          <MapIcon className="w-3 h-3 text-accent" /> Open in Maps
-                        </button>
-                      )}
+                      <button 
+                        onClick={() => openInMaps(zone)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg text-[10px] font-bold uppercase tracking-widest hover:border-accent transition-colors print:hidden"
+                      >
+                        <MapIcon className="w-3 h-3 text-accent" /> View {zone.neighborhood.split(' ')[0]} in Maps
+                      </button>
                     </div>
                     <div className="flex gap-2">
                       <div className="px-2 py-1 bg-accent/10 rounded flex items-center gap-1">
@@ -251,85 +252,112 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   <h2 className="text-2xl font-extrabold tracking-tighter uppercase">Transport Timeline</h2>
                 </div>
                 
-                {/* Transport Mode Toggle */}
-                <div className="flex bg-card border border-border p-1 rounded-lg print:hidden">
-                  <button 
-                    onClick={() => setTransportMode('train')}
-                    className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-md ${transportMode === 'train' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-muted-foreground hover:text-foreground'}`}
+                {/* High-End Transport Mode Toggle */}
+                <div className="relative flex bg-card border border-border p-1 rounded-xl print:hidden">
+                  <motion.div 
+                    layoutId="transport-active"
+                    className="absolute inset-0 z-0 p-1"
                   >
-                    Train
+                    <motion.div 
+                      layout
+                      initial={false}
+                      className="h-full bg-accent rounded-lg shadow-lg shadow-accent/20"
+                      animate={{
+                        x: transportMode === 'publicTransport' ? 0 : '100%'
+                      }}
+                      style={{ width: '50%' }}
+                    />
+                  </motion.div>
+                  <button 
+                    onClick={() => setTransportMode('publicTransport')}
+                    className={`relative z-10 px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2 w-32 justify-center ${transportMode === 'publicTransport' ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    🚆 Public
                   </button>
                   <button 
-                    onClick={() => setTransportMode('car')}
-                    className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-md ${transportMode === 'car' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-muted-foreground hover:text-foreground'}`}
+                    onClick={() => setTransportMode('privateCar')}
+                    className={`relative z-10 px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2 w-32 justify-center ${transportMode === 'privateCar' ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
                   >
-                    Car
+                    🚗 Private
                   </button>
                 </div>
               </div>
               
-              {/* Vertical Step Connector */}
-              <div className="relative ml-4 print:ml-2">
-                <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-accent/20 print:bg-black/20" />
-                
-                <div className="space-y-12">
-                  {Object.entries(data.transportTimeline[transportMode]).map(([day, times]: [string, any], i) => (
-                    <div key={day} className="relative pl-10">
-                      {/* Step Anchor */}
-                      <div className="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-accent border-4 border-background print:border-white shadow-[0_0_10px_#E10600] z-10" />
-                      
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent block">{day}</span>
-                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{times.note}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-8 bg-card/20 p-6 rounded-xl border border-border/50">
-                          <div className="space-y-1">
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block">Departure</span>
-                            <p className="text-3xl font-extrabold tabular-nums tracking-tighter">{times.departure}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block">Return</span>
-                            <p className="text-3xl font-extrabold tabular-nums tracking-tighter">{times.return}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Navigation Deep Link for Circuit */}
-              <div className="mt-12 p-6 bg-accent/5 border border-accent/10 rounded-xl flex items-center justify-between print:hidden">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Navigation Shortcut</p>
-                  <p className="text-sm font-bold">Launch directly to Main Circuit Gate</p>
-                </div>
-                <button 
-                  onClick={() => openInMaps(data.coordinates, data.name)}
-                  className="bg-accent text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all"
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={transportMode}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
                 >
-                   Open in Maps
-                </button>
-              </div>
+                  {/* Vertical Step Connector */}
+                  <div className="relative ml-4 print:ml-2">
+                    <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-accent/20 print:bg-black/20" />
+                    
+                    <div className="space-y-12">
+                      {Object.entries(currentLogistics.timeline).map(([day, times]: [string, any], i) => (
+                        <div key={day} className="relative pl-10">
+                          {/* Step Anchor */}
+                          <div className="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-accent border-4 border-background print:border-white shadow-[0_0_10px_#E10600] z-10" />
+                          
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-accent block">{day}</span>
+                              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{times.note}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-8 bg-card/20 p-6 rounded-xl border border-border/50">
+                              <div className="space-y-1">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block">Departure</span>
+                                <p className="text-3xl font-extrabold tabular-nums tracking-tighter">{times.departure}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block">Return</span>
+                                <p className="text-3xl font-extrabold tabular-nums tracking-tighter">{times.return}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Navigation Deep Link for Circuit/Hub */}
+                  <div className="mt-12 p-6 bg-accent/5 border border-accent/10 rounded-xl flex items-center justify-between print:hidden">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Navigation Shortcut</p>
+                      <p className="text-sm font-bold">Launch directly to {currentLogistics.hubName}</p>
+                    </div>
+                    <button 
+                      onClick={() => window.open(currentLogistics.hubUrl, '_blank')}
+                      className="bg-accent text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all"
+                    >
+                       Open in Maps
+                    </button>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
             </div>
             
             <div className="print:mt-12">
               <div className="flex items-center gap-3 mb-8 print:border-b-2 print:border-accent print:pb-2">
                 <Lightbulb className="w-5 h-5 text-accent" />
-                <h2 className="text-2xl font-extrabold tracking-tighter uppercase">Expert Secrets</h2>
+                <h2 className="text-2xl font-extrabold tracking-tighter uppercase">
+                  {transportMode === 'publicTransport' ? 'Transit Intelligence' : 'Driving Strategies'}
+                </h2>
               </div>
               <ul className="space-y-6">
-                {data.expertSecrets.map((secret: string, i: number) => (
+                {currentLogistics.tips.map((tip: string, i: number) => (
                   <li key={i} className="flex gap-6 p-6 border border-border bg-card/20 rounded-xl relative group hover:border-accent transition-colors print:border-black print:p-2">
                     <span className="text-xl font-serif italic font-bold text-accent/20 group-hover:text-accent transition-colors tabular-nums">0{i+1}</span>
-                    <p className="text-sm font-light leading-relaxed text-foreground/80">{secret}</p>
+                    <p className="text-sm font-light leading-relaxed text-foreground/80">{tip}</p>
                   </li>
                 ))}
               </ul>
             </div>
           </div>
         </section>
+
 
         {/* Checklist Section - Interactive */}
         <section id="checklist" className="scroll-mt-36 print:page-break-before">
