@@ -130,7 +130,7 @@ function CircuitSchematicEngine() {
   const circuits = [
     { 
       name: 'Monza', 
-      path: "M 50,20 L 220,20 L 225,10 L 240,10 L 245,20 L 380,20 C 430,20 450,50 440,90 L 410,160 Q 400,180 380,180 L 350,180 Q 330,180 320,200 L 300,240 Q 280,270 240,270 L 100,270 C 40,270 10,230 10,150 C 10,70 30,20 50,20 Z" 
+      path: "M419.3,301.7c-22,0-193.8,0-199,0c-5.3,0-4.4-3.3-4.4-5s0.5-5.8-1.9-5.8s-4.8,0.7-7.9,2c-3.1,1.3-16.5,7.8-38.3,9.1c-11.5,0.7-31.2,0.9-47.2-7.2c-22.4-11.4-38.2-36.5-41.6-59.3c-1.6-10.4-13-81.5-13.6-84c-0.6-2.5-1.8-3.7-4.5-3.8c-2.8-0.1-6.1-0.7-6.9-6.4s-2-10.7-5.1-16.7c-3.1-6-15.2-35.9-17.3-40.2s-4.2-19.6,10-22.5c14.2-2.9,46.5-8.8,50.8-9.4c4.2-0.6,8.3-0.6,12,5.1s27.5,41.1,31.6,48c4.1,6.9,16.7,22.4,31.3,37.2c14.6,14.8,81.5,78.9,83.9,81.2s3.8,5.7,10.8,3.7c7-2,11.3-2.8,18.3,0.1c7,2.9,9.4,7,11.1,8.8c1.8,1.8,3.7,3.5,7,3.5s202.8,4.1,210.1,4.2c7.3,0.1,16.7,6.9,16.7,17.3c0,10.4-6.4,22-17.1,27.8c-18.7,10.2-47.4,12.4-71.1,12.4C424.7,301.7,419.3,301.7,419.3,301.7z" 
     },
     { 
       name: 'Silverstone', 
@@ -156,14 +156,14 @@ function CircuitSchematicEngine() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="w-full h-full flex flex-col items-center justify-center gap-14"
       >
-        <div className="relative w-full aspect-[5/3] max-w-[500px]">
-          <svg viewBox="0 0 500 300" className="w-full h-full drop-shadow-[0_0_40px_rgba(225,6,0,0.2)]">
+        <div className="relative w-full aspect-[550/443.7] max-w-[500px]">
+          <svg viewBox="0 0 550 443.7" className="w-full h-full drop-shadow-[0_0_40px_rgba(225,6,0,0.2)]">
             {/* The Authentic Path Layer */}
             <motion.path
               d={circuits[index].path}
               fill="none"
               stroke="rgba(255,255,255,0.05)"
-              strokeWidth="3"
+              strokeWidth="4"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -173,7 +173,7 @@ function CircuitSchematicEngine() {
               d={circuits[index].path}
               fill="none"
               stroke="#E10600"
-              strokeWidth="2"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
               initial={{ pathLength: 0 }}
@@ -184,7 +184,7 @@ function CircuitSchematicEngine() {
             
             {/* Telemetry Pointer (Red Dot) */}
             <motion.circle
-              r="4.5"
+              r="6"
               fill="#E10600"
               className="shadow-[0_0_15px_#E10600]"
               initial={{ offsetDistance: "0%" }}
