@@ -27,6 +27,7 @@ function SuccessDetector({ onSetStage }: { onSetStage: (stage: CheckoutStage) =>
 }
 
 export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProps) {
+  const [stage, setStage] = useState<CheckoutStage>('form');
   const [isPaying, setIsPaying] = useState(false);
   const router = useRouter();
 
