@@ -36,11 +36,10 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
             onClick={onClose}
           />
           <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} // Spring-like premium ease
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="w-full max-w-xl bg-card border border-border shadow-2xl rounded-3xl p-8 relative pointer-events-auto"
             >
               <button
