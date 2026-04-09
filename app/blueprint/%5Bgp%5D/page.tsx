@@ -20,9 +20,20 @@ import {
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+export async function generateStaticParams() {
+  return Object.keys(BLUEPRINT_DETAILS).map((gp) => ({
+    gp: gp,
+  }));
+}
+
 export default function BlueprintPage({ params: paramsPromise }: { params: Promise<{ gp: string }> }) {
   const params = use(paramsPromise);
-  const gpKey = params.gp.toLowerCase();
+  const gpKey = params?.gp?.toLowerCase();
+  
+  if (!gpKey) {
+    notFound();
+  }
+
   const data = (BLUEPRINT_DETAILS as any)[gpKey];
 
   if (!data) {
