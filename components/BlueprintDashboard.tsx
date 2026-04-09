@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { WeatherModule } from './WeatherModule';
 import { useCurrency } from '@/lib/CurrencyContext';
 import { formatPrice } from '@/lib/formatPrice';
+import { CurrencySelector } from './CurrencySelector';
 
 interface BlueprintDashboardProps {
   data: any;
