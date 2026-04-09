@@ -50,8 +50,15 @@ export function BlueprintDashboard({ data, totalBudget }: BlueprintDashboardProp
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-accent block mb-0.5">Premium Blueprint</span>
-                <h1 className="text-xl font-extrabold tracking-tighter">Your {data.name} Guide <span className="text-muted-foreground font-light text-sm ml-2">2026 Edition</span></h1>
+                <Link href="/" className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors mb-2 print:hidden">
+                  <ArrowLeft className="w-3 h-3" /> Back to Planner
+                </Link>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-accent block">Premium Blueprint</span>
+                  <div className="w-1 h-1 rounded-full bg-border print:hidden" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block">2026 Edition</span>
+                </div>
+                <h1 className="text-xl font-extrabold tracking-tighter">Your {data.name} Guide</h1>
               </div>
             </div>
             <button 

@@ -15,8 +15,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "PaddockPlan | Your Ultimate Grand Prix Trip",
-  description: "Plan your ultimate GP weekend. Motorsport travel, simplified.",
+  title: "PaddockPlan | The Definitive Grand Prix Blueprint",
+  description: "Get expert-backed logistics, stay heatmaps, and secret tips for your next F1 trip.",
 };
 
 export default function RootLayout({

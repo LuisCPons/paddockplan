@@ -5,6 +5,7 @@ import { HowItWorks } from '@/components/HowItWorks';
 import { QuickPlanner } from '@/components/QuickPlanner';
 import { Pricing } from '@/components/Pricing';
 import { FAQ } from '@/components/FAQ';
+import { Testimonials } from '@/components/Testimonials';
 import { Footer } from '@/components/Footer';
 
  
@@ -19,6 +20,7 @@ export default function Home() {
         <QuickPlanner />
         <Pricing />
         <FAQ />
+        <Testimonials />
       </main>
       <Footer />
     </>

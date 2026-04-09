@@ -27,9 +27,11 @@ function SuccessDetector({ onSetStage }: { onSetStage: (stage: CheckoutStage) =>
 }
 
 export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProps) {
-  const [stage, setStage] = useState<CheckoutStage>('form');
   const [isPaying, setIsPaying] = useState(false);
   const router = useRouter();
+
+  // Check if the current GP is 'unverified' (Barcelona or Silverstone)
+  const isUnverified = defaultGP.toLowerCase() === 'barcelona' || defaultGP.toLowerCase() === 'silverstone';
 
   const handleLeadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,17 +39,22 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
     
     // 1.5s Transition to buildup anticipation
     setTimeout(() => {
-      setStage('checkout');
+      // If unverified, go to a success/waitlist state instead of checkout
+      if (isUnverified) {
+        setStage('success');
+      } else {
+        setStage('checkout');
+      }
     }, 1500);
   };
 
   const handlePayment = () => {
     setIsPaying(true);
-    // Simulate payment processing delay
+    // Simulate payment processing delay (Updated to 1.5s)
     setTimeout(() => {
       // Redirect to Monza blueprint (mocking successful purchase)
       router.push('/blueprint/monza');
-    }, 1200);
+    }, 1500);
   };
 
   const handleClose = () => {
@@ -200,23 +207,28 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
               transition={{ delay: 0.2, type: "spring", bounce: 0.5 }}
               className="w-20 h-20 bg-accent/10 border border-accent/20 rounded-full flex items-center justify-center mb-8"
             >
-              <Download className="w-10 h-10 text-accent" />
+              {isUnverified ? <Clock className="w-10 h-10 text-accent" /> : <Download className="w-10 h-10 text-accent" />}
             </motion.div>
-            <h2 className="text-3xl font-extrabold tracking-tighter mb-4">Your Blueprint is Ready</h2>
+            <h2 className="text-3xl font-extrabold tracking-tighter mb-4">
+              {isUnverified ? 'Join the Waitlist' : 'Your Blueprint is Ready'}
+            </h2>
             <p className="text-foreground/60 mb-10 max-w-xs mx-auto font-light text-sm leading-relaxed">
-              Your custom 12-page logistics guide has been generated and is ready for download.
+              {isUnverified 
+                ? `${defaultGP} blueprints are currently being verified for 2026. Join the waitlist to be notified first.`
+                : 'Your custom 12-page logistics guide has been generated and is ready for download.'
+              }
             </p>
             <div className="w-full space-y-4">
               <button 
                 className="w-full bg-foreground text-background font-bold text-xs uppercase tracking-widest py-5 hover:bg-black transition-colors flex justify-center items-center gap-3"
               >
-                Download Digital Blueprint <Download className="w-4 h-4" />
+                {isUnverified ? 'Notify Me When Ready' : 'Download Digital Blueprint'} {isUnverified ? <ArrowRight className="w-4 h-4" /> : <Download className="w-4 h-4" />}
               </button>
               <button 
                 onClick={handleClose}
                 className="w-full bg-transparent border border-border text-foreground/60 font-bold text-[10px] uppercase tracking-widest py-3 hover:text-foreground transition-colors"
               >
-                Enter Member Dashboard
+                Back to Site
               </button>
             </div>
           </motion.div>
