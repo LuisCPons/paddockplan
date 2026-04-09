@@ -190,12 +190,11 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                       <div>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-accent block mb-1">Option 0{i+1}</span>
                         <h3 className="text-xl font-bold tracking-tight">{zone.neighborhood}</h3>
-                      </div>
-                      <button 
+                                <button 
                         onClick={() => openInMaps(zone)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg text-[10px] font-bold uppercase tracking-widest hover:border-accent transition-colors print:hidden"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg text-[10px] font-bold uppercase tracking-widest hover:border-[#E10600] group/map transition-colors print:hidden"
                       >
-                        <MapIcon className="w-3 h-3 text-accent" /> View {zone.neighborhood.split(' ')[0]} in Maps
+                        <MapIcon className="w-3 h-3 text-accent group-hover/map:text-[#E10600] transition-colors" /> View in Maps
                       </button>
                     </div>
                     <div className="flex gap-2">
@@ -265,6 +264,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                       animate={{
                         x: transportMode === 'publicTransport' ? 0 : '100%'
                       }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       style={{ width: '50%' }}
                     />
                   </motion.div>
@@ -283,13 +283,13 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 </div>
               </div>
               
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={transportMode}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
                 >
                   {/* Vertical Step Connector */}
                   <div className="relative ml-4 print:ml-2">
@@ -330,12 +330,11 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                     </div>
                     <button 
                       onClick={() => window.open(currentLogistics.hubUrl, '_blank')}
-                      className="bg-accent text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all"
+                      className="flex items-center gap-2 bg-accent text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black hover:border-[#E10600] group/nav transition-all"
                     >
-                       Open in Maps
+                       <MapIcon className="w-3 h-3 transition-colors group-hover/nav:text-[#E10600]" /> Open in Maps
                     </button>
                   </div>
-                </motion.div>
               </AnimatePresence>
             </div>
             
