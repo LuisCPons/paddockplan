@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AccessModal } from './AccessModal';
 import { Ticket, Home, Lightbulb, ArrowRight, CircleDollarSign, Map, Clock, Lock } from 'lucide-react';
@@ -116,7 +116,14 @@ export function QuickPlanner() {
   const [budgetIndex, setBudgetIndex] = useState(2);
   const [lengthIndex, setLengthIndex] = useState(3);
   const [styleIndex, setStyleIndex] = useState(2);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    setIsGenerating(true);
+    const timer = setTimeout(() => setIsGenerating(false), 1000);
+    return () => clearTimeout(timer);
+  }, [gpIndex, budgetIndex, lengthIndex, styleIndex]);
 
   const results = useMemo(() => {
     const gpData = PLANNER_DATA[gpIndex];
@@ -219,7 +226,25 @@ export function QuickPlanner() {
             </div>
           </div>
 
-          <div className="mt-12 pt-12 border-t border-border">
+          <div className="mt-12 pt-12 border-t border-border relative">
+            <AnimatePresence>
+              {isGenerating && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-x-0 top-12 bottom-0 z-50 bg-background/60 backdrop-blur-sm flex items-center justify-center"
+                >
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent animate-pulse">
+                      Generating data for {PLANNER_DATA[gpIndex].name}...
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <AnimatePresence mode="wait">
               <motion.div
                 key={stateHash}
@@ -282,7 +307,7 @@ export function QuickPlanner() {
             </AnimatePresence>
           </div>
           
-          <div className="mt-16 flex flex-col items-center border-t border-border pt-12">
+            <div className="mt-16 border-t border-border pt-12">
               <div className="mb-10 text-center">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent mb-6 block">Included in Premium</span>
                 <div className="flex flex-col md:flex-row gap-8 md:gap-12 justify-center">
@@ -301,73 +326,87 @@ export function QuickPlanner() {
                 </div>
               </div>
               
-              <div className="flex justify-center">
-               <motion.button 
-                 whileHover={{ scale: 1.02, backgroundColor: '#CC0000', color: '#FFFFFF' }}
-                 whileTap={{ scale: 0.98 }}
-                 onClick={() => setIsModalOpen(true)}
-                 className="px-10 py-5 border border-border text-foreground text-xs uppercase tracking-[0.2em] font-bold transition-all duration-300 flex items-center gap-3 bg-card"
-               >
-                 Unlock Full Weekend Plan <ArrowRight className="w-4 h-4" />
-               </motion.button>
+                </div>
+              </div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="mt-4 w-full relative"
+              >
+                <div className="text-center mb-8">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Premium Blueprint Preview</span>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-30 blur-[3px] pointer-events-none select-none">
+                  {/* Card A: Budget Chart */}
+                  <div className="p-6 border border-border bg-background/50 space-y-4 h-[200px]">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Precise Expense Breakdown</p>
+                    <div className="space-y-4 pt-2">
+                       {[0.8, 0.6, 0.4, 0.5].map((scale, i) => (
+                         <div key={i} className="space-y-2">
+                            <div className="flex justify-between items-center text-[8px] text-muted-foreground uppercase font-bold">
+                              <span>Label {i}</span>
+                              <span>€###</span>
+                            </div>
+                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                               <div className="h-full bg-accent" style={{ width: `${scale * 100}%` }} />
+                            </div>
+                         </div>
+                       ))}
+                    </div>
+                  </div>
+
+                  {/* Card B: Map Hotspot */}
+                  <div className="p-6 border border-border bg-background/50 flex flex-col items-center justify-center h-[200px] relative overflow-hidden">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-4 absolute top-6 left-6">Stay Area Heatmap</p>
+                    <div className="relative w-24 h-24">
+                      <div className="absolute inset-0 bg-accent/30 rounded-full blur-2xl animate-pulse" />
+                      <div className="absolute inset-4 border border-accent/20 rounded-full" />
+                      <div className="absolute inset-8 border border-accent/40 rounded-full" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-accent rounded-full shadow-[0_0_10px_#CC0000]" />
+                    </div>
+                  </div>
+
+                  {/* Card C: Timeline */}
+                  <div className="p-6 border border-border bg-background/50 space-y-4 h-[200px]">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Arrival & Logistics</p>
+                    <div className="space-y-4 pt-2">
+                       {[1, 2, 3].map((i) => (
+                         <div key={i} className="flex gap-3 items-start border-l border-border pl-4 relative">
+                            <div className="absolute -left-1 top-0 w-2 h-2 rounded-full bg-accent/40" />
+                            <div className="space-y-2 flex-1">
+                              <div className="h-2 w-12 bg-muted rounded" />
+                              <div className="h-1.5 w-full bg-muted/40 rounded" />
+                            </div>
+                         </div>
+                       ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Glass Overlay with Consolidated Button */}
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/40 backdrop-blur-[6px] border border-white/5 rounded-sm">
+                  <div className="flex flex-col items-center max-w-xs text-center">
+                    <div className="w-12 h-12 rounded-full bg-black/40 border border-white/10 flex items-center justify-center mb-6">
+                      <Lock className="w-5 h-5 text-white/40" />
+                    </div>
+                    <h5 className="text-lg font-bold tracking-tight text-white mb-6">Experience the Full Weekend.</h5>
+                    
+                    <motion.button 
+                      whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(225, 6, 0, 0.4)' }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setIsModalOpen(true)}
+                      className="group bg-[#E10600] text-white px-8 py-4 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-3 shadow-[0_0_15px_rgba(225,6,0,0.3)]"
+                    >
+                      Unlock 12-Page Blueprint <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-16 w-full relative"
-            >
-              <div className="text-center mb-10">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Premium Blueprint Preview</span>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-40 blur-[2px] pointer-events-none select-none">
-                {/* Card A: Budget */}
-                <div className="p-6 border border-border bg-background/50 space-y-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Precise Expense Breakdown</p>
-                  <div className="space-y-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="flex justify-between border-b border-border/50 pb-2">
-                        <div className="h-2 w-16 bg-muted rounded" />
-                        <div className="h-2 w-8 bg-muted rounded" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Card B: Map */}
-                <div className="p-6 border border-border bg-background/50 flex flex-col items-center justify-center min-h-[160px] relative overflow-hidden">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-4 absolute top-6 left-6">Stay Area Heatmap</p>
-                  <div className="w-24 h-24 border-2 border-dashed border-muted rotate-45 flex items-center justify-center">
-                    <div className="w-12 h-12 bg-accent/20 rounded-full blur-xl" />
-                  </div>
-                </div>
-
-                {/* Card C: Logistics */}
-                <div className="p-6 border border-border bg-background/50 space-y-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Arrival & Circuit Logistics</p>
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="flex gap-2 items-start">
-                        <div className="w-1.5 h-1.5 rounded-full bg-muted mt-1" />
-                        <div className="h-2 flex-1 bg-muted rounded" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Glass Overlay */}
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/20 backdrop-blur-[4px] border border-white/5 shadow-2xl">
-                <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(204,0,0,0.4)]">
-                  <Lock className="w-5 h-5 text-white" />
-                </div>
-                <p className="text-sm font-bold tracking-tight text-white mb-1">Premium Blueprint Locked</p>
-                <p className="text-[11px] text-white/60 font-medium">Upgrade to see your custom 12-page blueprint.</p>
-              </div>
-            </motion.div>
           </div>
         </motion.div>
       </div>
