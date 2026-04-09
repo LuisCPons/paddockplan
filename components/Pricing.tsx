@@ -1,0 +1,113 @@
+"use client";
+
+import { useState } from 'react';
+import { motion } from 'motion/react';
+import { Check } from 'lucide-react';
+import { AccessModal } from './AccessModal';
+
+const TIERS = [
+  {
+    name: 'Self-Guided',
+    price: 'Free',
+    description: 'Basic access to our community guidelines and public track info.',
+    features: ['Public Track Information', 'Community Forum Access', 'Basic Packing List'],
+    cta: 'Join Directory',
+    popular: false
+  },
+  {
+    name: 'Grandstand',
+    price: '$49',
+    period: '/trip',
+    description: 'The complete self-guided itinerary for the dedicated fan.',
+    features: ['Custom Digital Itinerary', 'Interactive Track Map', 'Local Transport Guide', 'Restaurant Recommendations', 'Live Weather Alerts'],
+    cta: 'Acquire Itinerary',
+    popular: true
+  },
+  {
+    name: 'Paddock Club',
+    price: '$299',
+    period: '/trip',
+    description: 'Full concierge service for an unforgettable luxury weekend.',
+    features: ['Everything in Grandstand', 'VIP Ticket Sourcing', 'Hotel & Transfer Booking', '24/7 Concierge Chat', 'Exclusive Party Access'],
+    cta: 'Speak to Concierge',
+    popular: false
+  }
+];
+
+export function Pricing() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  return (
+    <>
+      <section id="pricing" className="py-24 md:py-32 bg-background border-t border-zinc-200 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="text-center mb-20"
+          >
+            <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">Services</span>
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-6">Select Your Experience.</h2>
+          </motion.div>
+
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={{
+              visible: { transition: { staggerChildren: 0.15 } },
+              hidden: {}
+            }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          >
+            {TIERS.map((tier) => (
+              <motion.div 
+                key={tier.name} 
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+                }}
+                whileHover={{ y: -8 }}
+                className={`relative flex flex-col p-10 border transition-colors bg-background ${tier.popular ? 'border-foreground shadow-sm shadow-black/5' : 'border-zinc-200 hover:border-zinc-300'}`}
+              >
+                {tier.popular && (
+                  <div className="absolute top-0 right-8 -translate-y-1/2 bg-accent text-background text-[10px] font-bold px-3 py-1 uppercase tracking-[0.2em]">
+                    Signature
+                  </div>
+                )}
+                
+                <div className="mb-10">
+                  <h3 className="text-lg font-bold uppercase tracking-widest mb-4">{tier.name}</h3>
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-5xl font-light tracking-tighter">{tier.price}</span>
+                    {tier.period && <span className="text-foreground/50 text-sm">{tier.period}</span>}
+                  </div>
+                  <p className="text-sm text-foreground/60 leading-relaxed font-light h-12">{tier.description}</p>
+                </div>
+
+                <div className="flex-1 space-y-4 mb-10 border-t border-zinc-100 pt-8">
+                  {tier.features.map((feat) => (
+                    <div key={feat} className="flex items-start gap-4">
+                      <Check className={`w-4 h-4 shrink-0 mt-0.5 ${tier.popular ? 'text-accent' : 'text-zinc-300'}`} />
+                      <span className="text-sm font-light text-foreground/80">{feat}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className={`w-full py-4 text-xs font-bold uppercase tracking-widest transition-colors ${tier.popular ? 'bg-foreground text-background hover:bg-accent' : 'bg-[#F9F9F9] text-foreground border border-zinc-200 hover:bg-zinc-100'}`}
+                >
+                  {tier.cta}
+                </button>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+      <AccessModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+    </>
+  );
+}
