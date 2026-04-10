@@ -195,6 +195,17 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     }, 800);
   };
 
+  const toggleItem = (index: number) => {
+    setPackedItems(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const resetItems = () => {
+    setPackedItems({});
+  };
+
   const getItemValues = (itemKey: string) => {
     const tierMultiplier = tierMultipliers[budgetTier];
     const distanceKm = fromCity.toLowerCase() === 'madrid' ? 1500 : 800;
