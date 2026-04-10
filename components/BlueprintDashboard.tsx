@@ -98,6 +98,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   // Inbound Logistics Terminal State
   const [showBriefingModal, setShowBriefingModal] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const [isFlightLoading, setIsFlightLoading] = useState(false);
   const [flightCostOverride, setFlightCostOverride] = useState<{min: number; max: number} | null>(null);
@@ -124,11 +125,19 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   const gpDate = new Date('2026-09-04');
   const isSurging = mounted && (gpDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24) < 180;
 
+  // Tier-Hub Sync: Automatically select hub based on strategic tier
   useEffect(() => {
-    if (originAirport.length === 3) {
+    if (budgetTier === 'budget') setArrivalAirport('BGY');
+    else if (budgetTier === 'mid') setArrivalAirport('MXP');
+    else if (budgetTier === 'premium') setArrivalAirport('LIN');
+  }, [budgetTier]);
+
+  // Reactive Price Engine: Fetch whenever origin or hub changes
+  useEffect(() => {
+    if (fromCity && arrivalAirport) {
       setIsScanning(true);
       const timer = setTimeout(() => {
-        const charCodeSum = originAirport.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const charCodeSum = (fromCity + arrivalAirport).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         const baseFlight = 200 + (charCodeSum % 300);
         setFlightCostOverride({
           min: Math.round(baseFlight * 0.9),
@@ -138,7 +147,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [originAirport]);
+  }, [fromCity, arrivalAirport]);
 
   const handleConciergeCommand = (e: React.FormEvent) => {
     e.preventDefault();
@@ -448,7 +457,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1">
                   <div className="space-y-1.5">
                     <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 block ml-1">Origin_City</span>
                     <input 
@@ -460,12 +469,6 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                       className="w-full bg-[#0A0A0A] border border-[#1A1A1A] text-[11px] font-mono font-black py-2.5 px-4 rounded-lg focus:outline-none focus:border-[#E10600] transition-colors uppercase placeholder:opacity-10"
                       placeholder="ENTER_ORIGIN"
                     />
-                  </div>
-                  <div className="space-y-1.5">
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 block ml-1">Tactical_Hub</span>
-                    <div className="w-full bg-[#0A0A0A]/50 border border-[#1A1A1A] text-[11px] font-mono font-black py-2.5 px-4 rounded-lg text-white/20 uppercase">
-                      {toCity}
-                    </div>
                   </div>
                 </div>
 
@@ -489,20 +492,27 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
                 <div className="pt-4 space-y-4">
                   <div className="flex items-end justify-between">
-                    {(() => {
-                      const values = getItemValues('inbound');
-                      return (
-                        <div className="text-4xl font-black tracking-tighter text-white">
-                          <Counter value={values.min} currency={selectedCurrency} />
-                          {values.min !== values.max && (
-                            <span className="mx-2 opacity-10 text-2xl">/</span>
-                          )}
-                          {values.min !== values.max && (
-                            <Counter value={values.max} currency={selectedCurrency} />
-                          )}
-                        </div>
-                      );
-                    })()}
+                    <div className="space-y-2">
+                       {/* Tier Optimized Badge */}
+                       <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#E10600] shadow-[0_0_5px_#E10600] animate-pulse" />
+                          <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/40 italic">Tier_Optimized Strategy</span>
+                       </div>
+                       {(() => {
+                        const values = getItemValues('inbound');
+                        return (
+                          <div className="text-4xl font-black tracking-tighter text-white">
+                            <Counter value={values.min} currency={selectedCurrency} />
+                            {values.min !== values.max && (
+                              <span className="mx-2 opacity-10 text-2xl">/</span>
+                            )}
+                            {values.min !== values.max && (
+                              <Counter value={values.max} currency={selectedCurrency} />
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
 
                     {/* Volatility Indicator */}
                     <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded flex-col items-end`}>
@@ -518,10 +528,19 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   
                   <div className="space-y-2">
                     <button 
-                      onClick={() => setShowBriefingModal(true)}
-                      className="w-full py-4 bg-white text-black rounded-lg text-xs font-black uppercase tracking-[0.2em] hover:bg-[#E10600] hover:text-white transition-all flex items-center justify-center gap-2 group"
+                      onClick={() => {
+                        setIsCalculating(true);
+                        setTimeout(() => {
+                          setIsCalculating(false);
+                          setShowBriefingModal(true);
+                        }, 1000);
+                      }}
+                      disabled={isCalculating}
+                      className="w-full py-4 bg-white text-black rounded-lg text-xs font-black uppercase tracking-[0.2em] hover:bg-[#E10600] hover:text-white transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
                     >
-                      Prepare Deployment <ShieldCheck className="w-4 h-4 group-hover:animate-pulse" />
+                      {isCalculating ? 'Calculating Optimal Path...' : 'Prepare Deployment'} 
+                      {!isCalculating && <ShieldCheck className="w-4 h-4 group-hover:animate-pulse" />}
+                      {isCalculating && <Loader2 className="w-4 h-4 animate-spin" />}
                     </button>
                     <p className="text-[8px] text-center text-white/20 font-black uppercase tracking-[0.2em]">
                       Live Market Data via Kiwi.com Tequila API & PaddockPlan Predictive Index
@@ -1009,10 +1028,10 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                    <div className="absolute left-3 top-0 bottom-0 w-px bg-gradient-to-b from-[#E10600] transparent to-white/5" />
                    
                    {[
-                     { time: '10:45', action: `Depart ${fromCity}`, sub: 'Recommended: Iberia / Air Europa', icon: '🛫' },
-                     { time: '12:45', action: `Arrival at ${arrivalAirport}`, sub: 'Strategic Hub Clearance', icon: '🛬' },
+                     { time: '10:45', action: `Depart ${fromCity}`, sub: 'Professional GP Window Selection', icon: '🛫' },
+                     { time: '12:45', action: `Arrival at ${arrivalAirport}`, sub: 'Thursday Pre-Race Arrival', icon: '🛬' },
                      { time: '13:15', action: 'Last-Mile Transfer', sub: arrivalAirport === 'LIN' ? 'X73 Tactical Shuttle to Center' : 'Express Rail to Monza', icon: '🚕' },
-                     { time: '14:00', action: 'Hotel Sync & Hub Check-in', sub: 'Deployment Ready', icon: '📍' }
+                     { time: '14:00', action: 'Hotel Sync & Hub Check-in', sub: 'Hub Deployment Ready', icon: '📍' }
                    ].map((step, i) => (
                      <div key={i} className="flex gap-6 relative ml-1 group">
                         <div className="w-4 h-4 rounded-full bg-black border-2 border-[#E10600] z-10 mt-1 relative">
@@ -1032,8 +1051,8 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 <div className="space-y-6 pt-4">
                   <div className="p-4 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl flex items-center justify-between">
                     <div className="space-y-1">
-                      <span className="text-[8px] font-black uppercase tracking-widest text-white/30">Total Guests</span>
-                      <p className="text-lg font-mono font-black">{guestCount} Tactical Unity</p>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-white/30">Deployment Window</span>
+                      <p className="text-[10px] font-mono font-black">Sept 03 — Sept 07</p>
                     </div>
                     <div className="h-10 w-px bg-[#1A1A1A]" />
                     <div className="text-right space-y-1">
@@ -1051,9 +1070,9 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   <button 
                     onClick={() => {
                       const url = inboundMode === 'plane' 
-                        ? `https://www.kiwi.com/en/search/results/${fromCity}/${arrivalAirport}/2026-09-04/2026-09-07?adults=${guestCount}`
+                        ? `https://www.kiwi.com/en/search/results/${fromCity}/${arrivalAirport}/2026-09-03/2026-09-07?adults=${guestCount}`
                         : inboundMode === 'train' 
-                          ? `https://www.thetrainline.com/en/search/results?from=${fromCity}&to=${toCity}&outwardDate=2026-09-04&adults=${guestCount}`
+                          ? `https://www.thetrainline.com/en/search/results?from=${fromCity}&to=${toCity}&outwardDate=2026-09-03&adults=${guestCount}`
                           : `https://www.google.com/maps/dir/${fromCity}/${toCity}`;
                       window.open(url, '_blank');
                     }}
