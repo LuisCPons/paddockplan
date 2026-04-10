@@ -481,44 +481,6 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 <ShoppingBag className="absolute -right-4 -bottom-4 w-24 h-24 opacity-4 group-hover:opacity-8 transition-opacity pointer-events-none" />
               </div>
             </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        <item.icon className={`w-3 h-3 ${budgetTier === 'premium' ? 'text-accent' : 'text-muted-foreground'}`} />
-                        {item.label}
-                      </div>
-                      {item.key === 'flights' && (
-                        <div className="relative">
-                          <input 
-                            type="text"
-                            placeholder="ORIGIN (e.g. JFK)"
-                            maxLength={3}
-                            value={originAirport}
-                            onChange={(e) => setOriginAirport(e.target.value.toUpperCase())}
-                            className="bg-background/50 border border-border text-[9px] font-bold py-1 px-2 rounded w-24 focus:outline-none focus:border-accent transition-colors placeholder:opacity-50"
-                          />
-                          {isFlightLoading && <Loader2 className="w-2 h-2 animate-spin absolute right-2 top-1.5 text-accent" />}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold tracking-tight">
-                        <Counter value={values.min} currency={selectedCurrency} />
-                        {values.min !== values.max && (
-                          <>
-                            <span className="mx-2 opacity-30">—</span>
-                            <Counter value={values.max} currency={selectedCurrency} />
-                          </>
-                        )}
-                      </div>
-                      {item.itemData.note && <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">{item.itemData.note}</p>}
-                    </div>
-                    
-                    {/* Decorative Background Icon */}
-                    <item.icon className="absolute -right-4 -bottom-4 w-24 h-24 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none" />
-                  </motion.div>
-                );
-              })}
-            </div>
             
             <div className="p-8 bg-foreground text-background rounded-2xl flex flex-col justify-between print:bg-white print:text-black print:border print:border-black relative overflow-hidden">
               <div className="relative z-10">
