@@ -430,7 +430,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                     
                     {/* Decorative Background Icon */}
                     <item.icon className="absolute -right-4 -bottom-4 w-24 h-24 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none" />
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
