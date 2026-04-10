@@ -116,15 +116,15 @@ function GuideCard({ guide }: { guide: any }) {
           className="w-full h-full object-cover object-center transition-transform duration-[2000ms] ease-out group-hover:scale-110" 
         />
         
-        {/* Stronger Bottom-Up Gradient for optimal text legibility */}
+        {/* Technical Soft Scrim for mathematical visibility without "muddying" photography */}
         <div 
           className="absolute inset-0 transition-opacity duration-500" 
-          style={{ backgroundImage: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 40%, transparent 100%)' }} 
+          style={{ backgroundImage: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0) 100%)' }} 
         />
 
-        {/* Top-Left Tag - Red Bordered Reference Design */}
-        <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 border border-[#E10600] bg-black/40 backdrop-blur-md rounded-lg shadow-[0_0_15px_rgba(225,6,0,0.2)]">
-          <TagIcon className="w-3.5 h-3.5 text-[#E10600]" />
+        {/* Top-Left Tag - Glass Control Overlay Reference Design */}
+        <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg">
+          <TagIcon className="w-3.5 h-3.5 text-white" />
           <span className="text-[9px] font-black uppercase tracking-widest text-white">{guide.tag}</span>
         </div>
 
@@ -142,12 +142,12 @@ function GuideCard({ guide }: { guide: any }) {
            </svg>
         </div>
 
-        {/* Bottom Content Area - Enhanced Contrast Zone */}
-        <div className="absolute bottom-0 left-0 p-8 w-full bg-black/20 backdrop-blur-[4px] border-t border-white/5">
+        {/* Bottom Content Area */}
+        <div className="absolute bottom-0 left-0 p-8 w-full">
           <div className="flex items-center gap-2 mb-2">
             <span 
-              className="text-[10px] font-bold uppercase tracking-[0.2em] text-white"
-              style={{ textShadow: '0px 2px 8px rgba(0,0,0,0.8), 0px 0px 2px rgba(0,0,0,1)' }}
+              className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-white"
+              style={{ textShadow: '0px 2px 4px rgba(0,0,0,0.5), 0px 0px 20px rgba(0,0,0,0.3)' }}
             >
               {guide.location}
             </span>
@@ -159,7 +159,7 @@ function GuideCard({ guide }: { guide: any }) {
           </div>
           <h3 
             className="text-2xl font-bold tracking-tight text-white mb-2" 
-            style={{ textShadow: '0px 2px 8px rgba(0,0,0,0.8), 0px 0px 2px rgba(0,0,0,1)' }}
+            style={{ textShadow: '0px 2px 4px rgba(0,0,0,0.5), 0px 0px 20px rgba(0,0,0,0.3)' }}
           >
             {guide.title}
           </h3>
@@ -169,7 +169,7 @@ function GuideCard({ guide }: { guide: any }) {
           
           <p 
             className="text-white/90 text-xs font-semibold leading-relaxed max-w-[90%] opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500"
-            style={{ textShadow: '0px 2px 8px rgba(0,0,0,0.8), 0px 0px 2px rgba(0,0,0,1)' }}
+            style={{ textShadow: '0px 2px 4px rgba(0,0,0,0.5), 0px 0px 20px rgba(0,0,0,0.3)' }}
           >
             {guide.description}
           </p>
