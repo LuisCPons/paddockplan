@@ -85,6 +85,10 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   const [guestCount, setGuestCount] = useState(1);
   const [arrivalAirport, setArrivalAirport] = useState<'LIN' | 'MXP' | 'BGY'>('LIN');
   const [merchEnabled, setMerchEnabled] = useState(false);
+  const [inboundMode, setInboundMode] = useState<'plane' | 'train' | 'car'>('plane');
+  const [stayZone, setStayZone] = useState<'urban' | 'trackside' | 'value'>('urban');
+  const [fromCity, setFromCity] = useState('Madrid');
+  const [toCity, setToCity] = useState('Milan');
   const [originAirport, setOriginAirport] = useState('');
   const [isFlightLoading, setIsFlightLoading] = useState(false);
   const [flightCostOverride, setFlightCostOverride] = useState<{min: number; max: number} | null>(null);
@@ -142,75 +146,69 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
   const getItemValues = (itemKey: string, itemData: any) => {
     const tierMultiplier = tierMultipliers[budgetTier];
-    
-    // Food is now explicitly €120 for Mid 3-day per person
-    let baseMin = itemData.min;
-    let baseMax = itemData.max;
+    const distanceKm = 1500; // Mock distance for calculation
 
-    if (itemKey === 'food') {
-      baseMin = 120;
-      baseMax = 180; // Scale range slightly
+    if (itemKey === 'inbound') {
+      if (inboundMode === 'plane') {
+        let baseMin = data.detailedBudget.flightsAvg.min;
+        let baseMax = data.detailedBudget.flightsAvg.max;
+        if (flightCostOverride) {
+          baseMin = flightCostOverride.min;
+          baseMax = flightCostOverride.max;
+        }
+        return { 
+          min: convert(baseMin * tierMultiplier * guestCount, 'EUR'), 
+          max: convert(baseMax * tierMultiplier * guestCount, 'EUR') 
+        };
+      }
+      if (inboundMode === 'train') {
+        const cost = distanceKm * 0.15 * guestCount;
+        return { min: convert(cost, 'EUR'), max: convert(cost, 'EUR') };
+      }
+      if (inboundMode === 'car') {
+        const cost = (distanceKm * 0.12) + 60;
+        return { min: convert(cost, 'EUR'), max: convert(cost, 'EUR') };
+      }
     }
 
-    if (itemKey === 'merch') {
-      const rate = merchRates[budgetTier];
-      return { min: convert(rate, 'EUR'), max: convert(rate, 'EUR') };
+    if (itemKey === 'stay') {
+      const rates = { urban: 200, trackside: 450, value: 100 };
+      const base = rates[stayZone];
+      const cost = base * tierMultiplier * guestCount;
+      return { min: convert(cost * 0.9, 'EUR'), max: convert(cost * 1.1, 'EUR') };
     }
-
-    // Multiplication logic
-    const scaleByGuests = ['food', 'flights'].includes(itemKey) || (itemKey === 'transport' && transportMode === 'publicTransport');
-    const multiplier = scaleByGuests ? guestCount * tierMultiplier : (itemKey === 'transport' ? 1 : tierMultiplier);
-
-    let minVal = baseMin * multiplier;
-    let maxVal = baseMax * multiplier;
 
     if (itemKey === 'transport') {
       if (transportMode === 'privateCar') {
-        minVal = 150; // Fixed Rental Fee
-        maxVal = 150;
+         return { min: convert(150, 'EUR'), max: convert(150, 'EUR') };
       }
-      // Airport Surcharge
-      if (arrivalAirport === 'MXP' || arrivalAirport === 'BGY') {
-        minVal += 20;
-        maxVal += 20;
-      }
+      const cost = 30 * tierMultiplier * guestCount;
+      let extra = 0;
+      if (arrivalAirport === 'MXP' || arrivalAirport === 'BGY') extra = 20;
+      return { min: convert(cost + extra, 'EUR'), max: convert(cost + extra, 'EUR') };
     }
 
-    return {
-      min: convert(minVal, itemData.currency || 'EUR'),
-      max: convert(maxVal, itemData.currency || 'EUR')
-    };
+    if (itemKey === 'misc') {
+      const base = 50 * tierMultiplier;
+      const merch = merchEnabled ? merchRates[budgetTier] * guestCount : 0;
+      return { min: convert(base + merch, 'EUR'), max: convert(base + merch, 'EUR') };
+    }
+
+    return { min: 0, max: 0 };
   };
 
   const getTieredTotal = () => {
-    const multiplier = tierMultipliers[budgetTier];
-    
-    // Calculation: (Guests * (Food + Flights)) + Transport_Fee + Merchandise (if ON)
-    const foodMid = 120;
-    const foodCost = foodMid * multiplier * guestCount;
-    
-    const flightData = data.detailedBudget.flightsAvg;
-    let flightAvg = (flightData.min + flightData.max) / 2;
-    if (flightCostOverride) {
-      flightAvg = (flightCostOverride.min + flightCostOverride.max) / 2;
-    }
-    const flightCostTotal = flightAvg * multiplier * guestCount;
+    const inbound = getItemValues('inbound', null);
+    const stay = getItemValues('stay', null);
+    const transport = getItemValues('transport', null);
+    const misc = getItemValues('misc', null);
 
-    let transportCost = 0;
-    if (transportMode === 'privateCar') {
-      transportCost = 150;
-    } else {
-      const baseTransport = (data.detailedBudget.trackTransport.min + data.detailedBudget.trackTransport.max) / 2;
-      transportCost = baseTransport * multiplier * guestCount;
-    }
-
-    if (arrivalAirport === 'MXP' || arrivalAirport === 'BGY') {
-      transportCost += 20;
-    }
-
-    const merchCost = merchEnabled ? merchRates[budgetTier] : 0;
-
-    return Math.round(foodCost + flightCostTotal + transportCost + merchCost);
+    return Math.round(
+      (inbound.min + inbound.max) / 2 +
+      (stay.min + stay.max) / 2 +
+      (transport.min + transport.max) / 2 +
+      (misc.min + misc.max) / 2
+    );
   };
 
   const currentTotal = getTieredTotal();
@@ -328,35 +326,161 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* Food Card */}
+              
+              {/* Module 1: Inbound Logistics */}
               <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <TrendingUp className={`w-3 h-3 ${budgetTier === 'premium' ? 'text-accent' : 'text-muted-foreground'}`} />
-                    Food & Dining ({guestCount}p)
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                    {inboundMode === 'plane' ? 'Inbound Logistics' : inboundMode === 'train' ? 'Rail Strategy' : 'Drive Logistics'}
+                  </div>
+                  <div className="flex bg-background border border-border p-0.5 rounded-lg h-8">
+                    {(['plane', 'train', 'car'] as const).map((m) => (
+                      <button 
+                        key={m}
+                        onClick={() => setInboundMode(m)}
+                        className={`relative z-10 px-3 text-[10px] transition-colors ${inboundMode === m ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
+                      >
+                        {inboundMode === m && <motion.div layoutId="inbound-bg" className="absolute inset-x-0 inset-y-0.5 bg-accent rounded-md -z-10" />}
+                        {m === 'plane' ? '✈️' : m === 'train' ? '🚆' : '🚗'}
+                      </button>
+                    ))}
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground block opacity-50">From</span>
+                    <input 
+                      type="text"
+                      value={fromCity}
+                      onChange={(e) => setFromCity(e.target.value)}
+                      className="w-full bg-background/50 border border-border text-[10px] font-black py-1.5 px-2 rounded-lg focus:outline-none focus:border-accent transition-colors uppercase"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground block opacity-50">To</span>
+                    <input 
+                      type="text"
+                      value={toCity}
+                      onChange={(e) => setToCity(e.target.value)}
+                      className="w-full bg-background/50 border border-border text-[10px] font-black py-1.5 px-2 rounded-lg focus:outline-none focus:border-accent transition-colors uppercase"
+                    />
+                  </div>
+                </div>
+
+                {inboundMode === 'plane' && (
+                  <div className="flex items-center justify-between gap-3 bg-background/30 p-2 rounded-lg border border-border/50">
+                    <span className="text-[9px] font-bold uppercase tracking-tight text-muted-foreground">Arrival Hub</span>
+                    <div className="relative">
+                      <select 
+                        value={arrivalAirport}
+                        onChange={(e) => setArrivalAirport(e.target.value as any)}
+                        className="bg-transparent text-[9px] font-black uppercase tracking-tight outline-none appearance-none cursor-pointer pr-6"
+                      >
+                        <option value="LIN">LIN (Central)</option>
+                        <option value="BGY">BGY (Bergamo)</option>
+                        <option value="MXP">MXP (Malpensa)</option>
+                      </select>
+                      <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
+                )}
+
                 {(() => {
-                  const values = getItemValues('food', data.detailedBudget.foodDaily);
+                  const values = getItemValues('inbound', null);
                   return (
-                    <div>
-                      <div className="text-2xl font-bold tracking-tight">
+                    <div className="space-y-4 pt-2">
+                       <div className="text-2xl font-bold tracking-tight">
                         <Counter value={values.min} currency={selectedCurrency} />
-                        <span className="mx-2 opacity-30">—</span>
-                        <Counter value={values.max} currency={selectedCurrency} />
+                        {values.min !== values.max && (
+                          <>
+                            <span className="mx-2 opacity-30">—</span>
+                            <Counter value={values.max} currency={selectedCurrency} />
+                          </>
+                        )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Calculated for 3-day weekend</p>
+                      <button 
+                        onClick={() => {
+                          const url = inboundMode === 'plane' 
+                            ? `https://www.kiwi.com/en/search/results/${fromCity}/${arrivalAirport}/2026-09-04/2026-09-06?adults=${guestCount}`
+                            : `https://www.thetrainline.com/en/search/results?from=${fromCity}&to=${toCity}&outwardDate=2026-09-04&adults=${guestCount}`;
+                          window.open(url, '_blank');
+                        }}
+                        className="w-full py-2 bg-accent text-white rounded-lg text-[10px] font-black uppercase tracking-[0.1em] hover:bg-black border border-accent transition-all flex items-center justify-center gap-2 group"
+                      >
+                        Find Best deals <Zap className="w-3 h-3 group-hover:animate-pulse" />
+                      </button>
                     </div>
                   );
                 })()}
                 <TrendingUp className="absolute -right-4 -bottom-4 w-24 h-24 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none" />
               </div>
 
-              {/* Transport Card */}
+              {/* Module 2: Stay Strategy */}
+              <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                    Strategic Stay
+                  </div>
+                  <div className="flex bg-background border border-border p-0.5 rounded-lg h-8">
+                    {(['urban', 'trackside', 'value'] as const).map((z) => (
+                      <button 
+                        key={z}
+                        onClick={() => setStayZone(z)}
+                        className={`relative z-10 px-2.5 text-[9px] font-black uppercase transition-colors ${stayZone === z ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
+                      >
+                        {stayZone === z && <motion.div layoutId="stay-bg" className="absolute inset-x-0 inset-y-0.5 bg-accent rounded-md -z-10" />}
+                        {z === 'urban' ? '🏙️' : z === 'trackside' ? '🏁' : '🌲'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-background/30 p-3 rounded-lg border border-border/50">
+                   <span className="text-[10px] font-bold text-accent uppercase block mb-1">
+                    {stayZone === 'urban' ? 'Urban Hub Strategy' : stayZone === 'trackside' ? 'Grand Prix Proximity' : 'High-Value Strategic Base'}
+                   </span>
+                   <p className="text-[9px] text-muted-foreground uppercase font-medium leading-relaxed">
+                    {stayZone === 'urban' ? 'Best for train users & Nightlife.' : stayZone === 'trackside' ? 'Walking distance. Zero logistics needed.' : 'Best for car users & budget management.'}
+                   </p>
+                </div>
+
+                {(() => {
+                  const values = getItemValues('stay', null);
+                  return (
+                    <div className="space-y-4">
+                       <div className="text-2xl font-bold tracking-tight">
+                        <Counter value={values.min} currency={selectedCurrency} />
+                        <span className="mx-2 opacity-30">—</span>
+                        <Counter value={values.max} currency={selectedCurrency} />
+                      </div>
+                      <div className="space-y-2">
+                        <button 
+                          onClick={() => {
+                            const url = `https://www.booking.com/searchresults.html?ss=${toCity}&checkin=2026-09-04&checkout=2026-09-06&group_adults=${guestCount}`;
+                            window.open(url, '_blank');
+                          }}
+                          className="w-full py-2 bg-transparent text-white border border-white/20 hover:border-accent hover:text-accent rounded-lg text-[10px] font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-2"
+                        >
+                          Search Live Vacancy <Calendar className="w-3 h-3" />
+                        </button>
+                        <p className="text-[8px] text-center text-muted-foreground uppercase font-bold tracking-wider opacity-60">
+                          Pro Tip: Locking early-bird rates before 300% surge.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+                <ShieldCheck className="absolute -right-4 -bottom-4 w-24 h-24 opacity-4 group-hover:opacity-8 transition-opacity pointer-events-none" />
+              </div>
+
+              {/* Module 3: Tactical Transport */}
               <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <Clock className="w-3 h-3" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
                     Tactical Transport
                   </div>
                   <div className="relative flex bg-background border border-border p-0.5 rounded-lg h-8">
@@ -365,19 +489,19 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                       className={`relative z-10 px-3 text-[9px] font-black uppercase tracking-tight transition-colors ${transportMode === 'publicTransport' ? 'text-white' : 'text-muted-foreground'}`}
                     >
                       {transportMode === 'publicTransport' && <motion.div layoutId="trans-bg-card" className="absolute inset-x-0 inset-y-0.5 bg-accent rounded-md -z-10" />}
-                      🚆 Public
+                      🚌 Public
                     </button>
                     <button 
                       onClick={() => setTransportMode('privateCar')}
                       className={`relative z-10 px-3 text-[9px] font-black uppercase tracking-tight transition-colors ${transportMode === 'privateCar' ? 'text-white' : 'text-muted-foreground'}`}
                     >
                       {transportMode === 'privateCar' && <motion.div layoutId="trans-bg-card" className="absolute inset-x-0 inset-y-0.5 bg-accent rounded-md -z-10" />}
-                      🚗 Rental
+                      🏎️ Rental
                     </button>
                   </div>
                 </div>
                 {(() => {
-                  const values = getItemValues('transport', data.detailedBudget.trackTransport);
+                  const values = getItemValues('transport', null);
                   return (
                     <div>
                       <div className="text-2xl font-bold tracking-tight">
@@ -398,52 +522,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 <Clock className="absolute -right-4 -bottom-4 w-24 h-24 opacity-4 group-hover:opacity-8 transition-opacity pointer-events-none" />
               </div>
 
-              {/* Flight Card */}
-              <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <MapIcon className="w-3 h-3" />
-                    Avg Flight Cost ({guestCount}p)
-                  </div>
-                  <div className="relative">
-                    <select 
-                      value={arrivalAirport}
-                      onChange={(e) => setArrivalAirport(e.target.value as any)}
-                      className="bg-background border border-border p-1.5 pr-6 rounded-lg text-[9px] font-black uppercase tracking-tight outline-none appearance-none cursor-pointer focus:border-accent"
-                    >
-                      <option value="LIN">LIN (Central)</option>
-                      <option value="BGY">BGY (Bergamo)</option>
-                      <option value="MXP">MXP (Malpensa)</option>
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-                  </div>
-                </div>
-                
-                <div className="relative w-full">
-                  <input 
-                    type="text"
-                    placeholder="ENTER DEPARTURE CITY OR CODE"
-                    value={originAirport}
-                    onChange={(e) => setOriginAirport(e.target.value.toUpperCase())}
-                    className="w-full bg-background/50 border border-border text-[10px] font-black py-2 px-3 rounded-lg focus:outline-none focus:border-accent transition-colors placeholder:opacity-50 uppercase"
-                  />
-                  {isFlightLoading && <Loader2 className="w-3 h-3 animate-spin absolute right-3 top-2.5 text-accent" />}
-                </div>
-
-                {(() => {
-                  const values = getItemValues('flights', flightCostOverride ? { ...flightCostOverride, currency: data.detailedBudget.flightsAvg.currency } : data.detailedBudget.flightsAvg);
-                  return (
-                    <div className="text-2xl font-bold tracking-tight">
-                      <Counter value={values.min} currency={selectedCurrency} />
-                      <span className="mx-2 opacity-30">—</span>
-                      <Counter value={values.max} currency={selectedCurrency} />
-                    </div>
-                  );
-                })()}
-                <MapIcon className="absolute -right-4 -bottom-4 w-24 h-24 opacity-4 group-hover:opacity-8 transition-opacity pointer-events-none" />
-              </div>
-
-              {/* Miscellaneous Buffer Card */}
+              {/* Module 4: Miscellaneous Buffer */}
               <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -460,14 +539,12 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 </div>
                 
                 {(() => {
-                  const values = getItemValues('misc', data.detailedBudget.miscellaneous);
-                  const merchVal = merchEnabled ? convert(merchRates[budgetTier], 'EUR') : 0;
+                  const values = getItemValues('misc', null);
+                  const merchVal = merchEnabled ? convert(merchRates[budgetTier] * guestCount, 'EUR') : 0;
                   return (
                     <div className="space-y-4">
                       <div className="text-2xl font-bold tracking-tight">
-                        <Counter value={values.min + merchVal} currency={selectedCurrency} />
-                        <span className="mx-2 opacity-30">—</span>
-                        <Counter value={values.max + merchVal} currency={selectedCurrency} />
+                        <Counter value={values.min} currency={selectedCurrency} />
                       </div>
                       <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest pt-2 border-t border-border/50">
                         <span className="text-muted-foreground">Merchandise Buffer</span>
