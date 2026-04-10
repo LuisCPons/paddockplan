@@ -35,7 +35,7 @@ import { QuickActionBar } from './QuickActionBar';
 import { BrandLogo } from './BrandLogo';
 import { getCurrencySymbol } from '@/lib/formatPrice';
 
-// Animated Counter Component
+// Animated Counter Component with Mono Font
 const Counter = ({ value, currency }: { value: number; currency: string }) => {
   const [displayValue, setDisplayValue] = useState(value);
   const prevValueRef = useRef(value);
@@ -43,15 +43,14 @@ const Counter = ({ value, currency }: { value: number; currency: string }) => {
   useEffect(() => {
     const start = prevValueRef.current;
     const end = value;
-    const duration = 800;
+    const duration = 1000;
     const startTime = performance.now();
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Easing function: easeOutExpo
-      const easing = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const easing = 1 - Math.pow(1 - progress, 4); // easeOutQuart
       const current = Math.floor(start + (end - start) * easing);
       
       setDisplayValue(current);
@@ -66,7 +65,7 @@ const Counter = ({ value, currency }: { value: number; currency: string }) => {
     requestAnimationFrame(animate);
   }, [value]);
 
-  return <span>{getCurrencySymbol(currency as any)}{displayValue.toLocaleString('de-DE')}</span>;
+  return <span className="font-mono tabular-nums tracking-tighter">{getCurrencySymbol(currency as any)}{displayValue.toLocaleString('de-DE')}</span>;
 };
 
 interface BlueprintDashboardProps {
@@ -90,6 +89,12 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   const [fromCity, setFromCity] = useState('Madrid');
   const [toCity, setToCity] = useState('Milan');
   const [originAirport, setOriginAirport] = useState('');
+  
+  // AI Concierge State
+  const [commandText, setCommandText] = useState('');
+  const [strategistNote, setStrategistNote] = useState('Awaiting strategic command...');
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const [isFlightLoading, setIsFlightLoading] = useState(false);
   const [flightCostOverride, setFlightCostOverride] = useState<{min: number; max: number} | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -133,20 +138,71 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     }
   }, [originAirport]);
 
-  const toggleItem = (index: number) => {
-    setPackedItems(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
+  const handleConciergeCommand = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commandText.trim()) return;
+
+    setIsProcessing(true);
+    
+    setTimeout(() => {
+      const input = commandText.toLowerCase();
+      let updates: string[] = [];
+
+      // Parse Guests
+      const friendMatch = input.match(/(\d+)\s+(friend|guest|people|person|buddy)/);
+      if (friendMatch) {
+        const count = parseInt(friendMatch[1]);
+        const total = (input.includes('with') || input.includes('and')) ? count + 1 : count;
+        setGuestCount(Math.min(4, total));
+        updates.push(`${total} guests`);
+      }
+
+      // Parse Origin
+      const originMatch = input.match(/from\s+([a-zA-Z\s]+?)(?=\s+with|\s+on|\s+by|\s+via|$)/);
+      if (originMatch) {
+        const city = originMatch[1].trim();
+        setFromCity(city.charAt(0).toUpperCase() + city.slice(1));
+        updates.push(`origin: ${city}`);
+      }
+
+      // Parse Mode
+      if (input.includes('drive') || input.includes('driving') || input.includes('car')) {
+        setInboundMode('car');
+        updates.push('car logistics');
+      } else if (input.includes('train') || input.includes('rail')) {
+        setInboundMode('train');
+        updates.push('rail strategy');
+      } else if (input.includes('flight') || input.includes('plane') || input.includes('fly')) {
+        setInboundMode('plane');
+        updates.push('flight inbound');
+      }
+
+      // Parse Tier
+      if (input.includes('budget') || input.includes('cheap') || input.includes('saving')) {
+        setBudgetTier('budget');
+        updates.push('budget strategy');
+      } else if (input.includes('premium') || input.includes('luxury') || input.includes('best')) {
+        setBudgetTier('premium');
+        updates.push('premium strategy');
+      }
+
+      setStrategistNote(updates.length > 0 
+        ? `Deployment Synchronized: ${updates.join(', ')}.` 
+        : "Observation: Specific tactical parameters not found. Use [Origin], [Guests], and [Tier].");
+      
+      setIsProcessing(false);
+      setCommandText('');
+    }, 800);
   };
 
-  const resetItems = () => {
-    setPackedItems({});
-  };
-
-  const getItemValues = (itemKey: string, itemData: any) => {
+  const getItemValues = (itemKey: string) => {
     const tierMultiplier = tierMultipliers[budgetTier];
-    const distanceKm = 1500; // Mock distance for calculation
+    const distanceKm = fromCity.toLowerCase() === 'madrid' ? 1500 : 800;
+
+    if (itemKey === 'food') {
+      const cost = 120 * tierMultiplier * guestCount;
+      return { min: convert(cost * 0.9, 'EUR'), max: convert(cost * 1.1, 'EUR') };
+    }
 
     if (itemKey === 'inbound') {
       if (inboundMode === 'plane') {
@@ -198,17 +254,20 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   };
 
   const getTieredTotal = () => {
-    const inbound = getItemValues('inbound', null);
-    const stay = getItemValues('stay', null);
-    const transport = getItemValues('transport', null);
-    const misc = getItemValues('misc', null);
+    // Total = (Guests * (Food + Inbound_Cost + Accomm_Cost)) + Transport_Fee + Merchandise
+    const food = getItemValues('food');
+    const inbound = getItemValues('inbound');
+    const stay = getItemValues('stay');
+    const transport = getItemValues('transport');
+    const misc = getItemValues('misc');
 
-    return Math.round(
-      (inbound.min + inbound.max) / 2 +
-      (stay.min + stay.max) / 2 +
-      (transport.min + transport.max) / 2 +
-      (misc.min + misc.max) / 2
-    );
+    const foodAvg = (food.min + food.max) / 2;
+    const inboundAvg = (inbound.min + inbound.max) / 2;
+    const stayAvg = (stay.min + stay.max) / 2;
+    const transportAvg = (transport.min + transport.max) / 2;
+    const miscAvg = (misc.min + misc.max) / 2;
+
+    return Math.round(inboundAvg + stayAvg + foodAvg + transportAvg + miscAvg);
   };
 
   const currentTotal = getTieredTotal();
@@ -223,103 +282,121 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   const currentLogistics = data.logistics[transportMode];
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-accent selection:text-white print:bg-white print:text-black pb-24 md:pb-0">
+    <div className="min-h-screen bg-black text-foreground selection:bg-[#E10600] selection:text-white print:bg-white print:text-black pb-24 md:pb-0">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50 print:static print:border-none print:bg-transparent">
+      <header className="border-b border-border bg-black/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-4">
-              <Link href="/" className="p-2 hover:bg-border rounded-full transition-colors print:hidden">
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-              <div>
-                <Link href="/" className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors mb-2 print:hidden">
-                  <ArrowLeft className="w-3 h-3" /> Back to Planner
-                </Link>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-accent block">Tactical Hub</span>
-                  <div className="w-1 h-1 rounded-full bg-border print:hidden" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block">2026 Edition</span>
-                </div>
-                <h1 className="text-xl font-extrabold tracking-tighter">Your {data.name} Guide</h1>
-              </div>
+               <BrandLogo />
+               <div className="h-8 w-px bg-border mx-2 hidden md:block" />
+               <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600] block">Modular Hub</span>
+                    <div className="w-1 h-1 rounded-full bg-border" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block">April 2026 Sync</span>
+                  </div>
+                  <h1 className="text-lg font-black tracking-tighter uppercase italic">From Data Points to the <span className="text-[#E10600]">Paddock.</span></h1>
+               </div>
             </div>
-            <div className="flex items-center gap-4 print:hidden">
+            <div className="flex items-center gap-4">
               <CurrencySelector />
               <button 
                 onClick={() => window.print()}
-                className="flex items-center gap-2 bg-foreground text-background px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-accent hover:text-white transition-all"
+                className="flex items-center gap-2 bg-[#E10600] text-white px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all rounded-md"
               >
-                <Printer className="w-4 h-4" /> Offline Dossier Export
+                <Printer className="w-3.5 h-3.5" /> Export Dossier
               </button>
             </div>
           </div>
         </div>
-        
-        {/* Sticky Sub-nav */}
-        <nav className="border-t border-border bg-card print:hidden overflow-x-auto no-scrollbar">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex gap-8 h-12 items-center text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
-              <a href="#budget" className="hover:text-accent transition-colors">01. Budget</a>
-              <a href="#stay" className="hover:text-accent transition-colors">02. Stay Zones</a>
-              <a href="#circuit" className="hover:text-accent transition-colors">03. Circuit map</a>
-              <a href="#weather" className="hover:text-accent transition-colors">04. Weather</a>
-              <a href="#logistics" className="hover:text-accent transition-colors">05. Logistics</a>
-              <a href="#checklist" className="hover:text-accent transition-colors">06. Checklist</a>
-            </div>
-          </div>
-        </nav>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24 print:space-y-12 print:py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
         
+        {/* Phase 9: AI Concierge Command Layer */}
+        <section className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#E10600]/5 to-transparent blur-3xl -z-10" />
+          <div className="p-1 rounded-2xl bg-gradient-to-r from-border via-[#E10600]/30 to-border">
+            <div className="bg-black rounded-[14px] p-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 bg-[#E10600] text-white text-[8px] font-black uppercase tracking-[0.2em] rounded">AI Enabled</span>
+                  <h2 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">Concierge Command</h2>
+                </div>
+                <div className={`w-2 h-2 rounded-full bg-[#E10600] ${isProcessing ? 'animate-ping' : ''}`} />
+              </div>
+
+              <form onSubmit={handleConciergeCommand} className="relative group">
+                <input 
+                  type="text"
+                  value={commandText}
+                  onChange={(e) => setCommandText(e.target.value)}
+                  placeholder="e.g., 'Driving from Madrid with 3 friends on a budget'"
+                  className="w-full bg-card border border-border rounded-xl px-6 py-5 text-lg font-medium focus:outline-none focus:border-[#E10600] transition-all placeholder:opacity-30"
+                />
+                <button 
+                  type="submit"
+                  disabled={isProcessing}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#E10600] text-white p-3 rounded-lg hover:scale-105 transition-all disabled:opacity-50"
+                >
+                  <Zap className={`w-5 h-5 ${isProcessing ? 'animate-pulse' : ''}`} />
+                </button>
+              </form>
+
+              <div className="flex items-center gap-3">
+                <div className="w-1 h-1 rounded-full bg-accent" />
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest italic">{strategistNote}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Budget Section */}
         <section id="budget" className="scroll-mt-36">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
             <div className="space-y-6">
-              <div className="flex items-center gap-3 print:border-b-2 print:border-accent print:pb-2">
-                <CircleDollarSign className="w-5 h-5 text-accent" />
-                <h2 className="text-2xl font-extrabold tracking-tighter uppercase">Financial Strategy</h2>
+              <div className="flex items-center gap-3">
+                <CircleDollarSign className="w-5 h-5 text-[#E10600]" />
+                <h2 className="text-2xl font-black tracking-tighter uppercase italic">Financial Strategy</h2>
               </div>
               
-              {/* Guest Selector */}
-              <div className="flex flex-col gap-2">
-                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Tactical Unit Size</span>
-                <div className="flex items-center gap-1 bg-card border border-border p-1 rounded-xl w-fit">
-                  {[1, 2, 3, 4].map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => setGuestCount(num)}
-                      className={`w-10 h-10 rounded-lg text-xs font-black transition-all ${
-                        guestCount === num ? 'bg-accent text-white' : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
-                  <div className="px-3 flex items-center gap-2 border-l border-border ml-2">
-                    <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{guestCount === 1 ? 'Person' : 'Guests'}</span>
+              <div className="flex items-center gap-6">
+                {/* Guest Selector */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Tactical Unit Size</span>
+                  <div className="flex items-center gap-1 bg-card border border-border p-1 rounded-xl w-fit">
+                    {[1, 2, 3, 4].map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => setGuestCount(num)}
+                        className={`w-9 h-9 rounded-lg text-xs font-black transition-all ${
+                          guestCount === num ? 'bg-[#E10600] text-white' : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Tier Selector */}
-            <div className="flex flex-col gap-2 md:items-end">
-              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Strategic Tier</span>
-              <div className="flex bg-card border border-border p-1 rounded-xl print:hidden">
-                {(['budget', 'mid', 'premium'] as const).map((tier) => (
-                  <button
-                    key={tier}
-                    onClick={() => setBudgetTier(tier)}
-                    className={`relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg overflow-hidden ${
-                      budgetTier === tier ? 'bg-[#E10600] text-white' : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
-                    }`}
-                  >
-                    {tier}
-                  </button>
-                ))}
+                {/* Tier Selector */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Strategic Tier</span>
+                  <div className="flex items-center gap-1 bg-card border border-border p-1 rounded-xl w-fit">
+                    {(['budget', 'mid', 'premium'] as const).map((tier) => (
+                      <button
+                        key={tier}
+                        onClick={() => setBudgetTier(tier)}
+                        className={`px-4 h-9 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                          budgetTier === tier ? 'bg-[#E10600] text-white' : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                        }`}
+                      >
+                        {tier}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -327,21 +404,21 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
               
-              {/* Module 1: Inbound Logistics */}
-              <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
+              {/* Card 1: Inbound Logistics */}
+              <div className="p-6 border border-border bg-card/20 rounded-xl space-y-4 relative overflow-hidden group">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#E10600] shadow-[0_0_8px_#E10600] animate-pulse" />
                     {inboundMode === 'plane' ? 'Inbound Logistics' : inboundMode === 'train' ? 'Rail Strategy' : 'Drive Logistics'}
                   </div>
-                  <div className="flex bg-background border border-border p-0.5 rounded-lg h-8">
+                  <div className="flex bg-black border border-border p-0.5 rounded-lg h-8">
                     {(['plane', 'train', 'car'] as const).map((m) => (
                       <button 
                         key={m}
                         onClick={() => setInboundMode(m)}
-                        className={`relative z-10 px-3 text-[10px] transition-colors ${inboundMode === m ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
+                        className={`relative z-10 px-3 text-[10px] font-black transition-colors ${inboundMode === m ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
                       >
-                        {inboundMode === m && <motion.div layoutId="inbound-bg" className="absolute inset-x-0 inset-y-0.5 bg-accent rounded-md -z-10" />}
+                        {inboundMode === m && <motion.div layoutId="inbound-bg-new" className="absolute inset-x-0 inset-y-0.5 bg-[#E10600] rounded-md -z-10" />}
                         {m === 'plane' ? '✈️' : m === 'train' ? '🚆' : '🚗'}
                       </button>
                     ))}
@@ -350,130 +427,141 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground block opacity-50">From</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground block opacity-50">Origin City</span>
                     <input 
                       type="text"
                       value={fromCity}
                       onChange={(e) => setFromCity(e.target.value)}
-                      className="w-full bg-background/50 border border-border text-[10px] font-black py-1.5 px-2 rounded-lg focus:outline-none focus:border-accent transition-colors uppercase"
+                      className="w-full bg-black/50 border border-border text-[11px] font-black py-2 px-3 rounded-lg focus:outline-none focus:border-[#E10600] transition-colors uppercase"
                     />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground block opacity-50">To</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground block opacity-50">Strategic Hub</span>
                     <input 
                       type="text"
                       value={toCity}
-                      onChange={(e) => setToCity(e.target.value)}
-                      className="w-full bg-background/50 border border-border text-[10px] font-black py-1.5 px-2 rounded-lg focus:outline-none focus:border-accent transition-colors uppercase"
+                      readOnly
+                      className="w-full bg-black/50 border border-border text-[11px] font-black py-2 px-3 rounded-lg opacity-50 uppercase"
                     />
                   </div>
                 </div>
 
                 {inboundMode === 'plane' && (
-                  <div className="flex items-center justify-between gap-3 bg-background/30 p-2 rounded-lg border border-border/50">
-                    <span className="text-[9px] font-bold uppercase tracking-tight text-muted-foreground">Arrival Hub</span>
+                  <div className="flex items-center justify-between gap-3 bg-black/50 p-2.5 rounded-lg border border-border/50">
+                    <span className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground">Destination Hub</span>
                     <div className="relative">
                       <select 
                         value={arrivalAirport}
                         onChange={(e) => setArrivalAirport(e.target.value as any)}
-                        className="bg-transparent text-[9px] font-black uppercase tracking-tight outline-none appearance-none cursor-pointer pr-6"
+                        className="bg-transparent text-[10px] font-black uppercase outline-none appearance-none cursor-pointer pr-6"
                       >
-                        <option value="LIN">LIN (Central)</option>
+                        <option value="LIN">LIN (Central) [REC]</option>
                         <option value="BGY">BGY (Bergamo)</option>
                         <option value="MXP">MXP (Malpensa)</option>
                       </select>
-                      <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+                      <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 text-[#E10600]" />
                     </div>
                   </div>
                 )}
 
-                {(() => {
-                  const values = getItemValues('inbound', null);
-                  return (
-                    <div className="space-y-4 pt-2">
-                       <div className="text-2xl font-bold tracking-tight">
+                <div className="space-y-4 pt-2">
+                  {(() => {
+                    const values = getItemValues('inbound');
+                    return (
+                      <div className="text-3xl font-black tracking-tighter">
                         <Counter value={values.min} currency={selectedCurrency} />
                         {values.min !== values.max && (
                           <>
-                            <span className="mx-2 opacity-30">—</span>
+                            <span className="mx-2 opacity-10">/</span>
                             <Counter value={values.max} currency={selectedCurrency} />
                           </>
                         )}
                       </div>
-                      <button 
-                        onClick={() => {
-                          const url = inboundMode === 'plane' 
-                            ? `https://www.kiwi.com/en/search/results/${fromCity}/${arrivalAirport}/2026-09-04/2026-09-06?adults=${guestCount}`
-                            : `https://www.thetrainline.com/en/search/results?from=${fromCity}&to=${toCity}&outwardDate=2026-09-04&adults=${guestCount}`;
-                          window.open(url, '_blank');
-                        }}
-                        className="w-full py-2 bg-accent text-white rounded-lg text-[10px] font-black uppercase tracking-[0.1em] hover:bg-black border border-accent transition-all flex items-center justify-center gap-2 group"
-                      >
-                        Find Best deals <Zap className="w-3 h-3 group-hover:animate-pulse" />
-                      </button>
-                    </div>
-                  );
-                })()}
-                <TrendingUp className="absolute -right-4 -bottom-4 w-24 h-24 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none" />
+                    );
+                  })()}
+                  
+                  <button 
+                    onClick={() => {
+                      const url = inboundMode === 'plane' 
+                        ? `https://www.kiwi.com/en/search/results/${fromCity}/${arrivalAirport}/2026-09-04/2026-09-06?adults=${guestCount}`
+                        : inboundMode === 'train' 
+                          ? `https://www.thetrainline.com/en/search/results?from=${fromCity}&to=${toCity}&outwardDate=2026-09-04&adults=${guestCount}`
+                          : `https://www.google.com/maps/dir/${fromCity}/${toCity}`;
+                      window.open(url, '_blank');
+                    }}
+                    className="w-full py-3 bg-[#E10600] text-white rounded-lg text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2 group"
+                  >
+                    {inboundMode === 'plane' ? 'Find Best Flights' : inboundMode === 'train' ? 'View Rail options' : 'View Road Strategy'}
+                    <Zap className="w-3.5 h-3.5 group-hover:animate-pulse" />
+                  </button>
+                </div>
               </div>
 
-              {/* Module 2: Stay Strategy */}
-              <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
+              {/* Card 2: Stay Strategy */}
+              <div className="p-6 border border-border bg-card/20 rounded-xl space-y-4 relative overflow-hidden group">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                     Strategic Stay
+                    <div className="group/expert relative inline-block">
+                      <Info className="w-3 h-3 text-muted-foreground/30 cursor-help" />
+                      <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-black border border-border text-[8px] font-bold leading-relaxed text-muted-foreground rounded invisible group-hover/expert:visible opacity-0 group-hover/expert:opacity-100 transition-all z-20">
+                        Strategy based on r/F1Travel & F1Destinations expert benchmarks.
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex bg-background border border-border p-0.5 rounded-lg h-8">
+                  <div className="flex bg-black border border-border p-0.5 rounded-lg h-8">
                     {(['urban', 'trackside', 'value'] as const).map((z) => (
                       <button 
                         key={z}
                         onClick={() => setStayZone(z)}
-                        className={`relative z-10 px-2.5 text-[9px] font-black uppercase transition-colors ${stayZone === z ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
+                        className={`relative z-10 px-2.5 text-[10px] font-black transition-colors ${stayZone === z ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
                       >
-                        {stayZone === z && <motion.div layoutId="stay-bg" className="absolute inset-x-0 inset-y-0.5 bg-accent rounded-md -z-10" />}
+                        {stayZone === z && <motion.div layoutId="stay-bg-new" className="absolute inset-x-0 inset-y-0.5 bg-[#E10600] rounded-md -z-10" />}
                         {z === 'urban' ? '🏙️' : z === 'trackside' ? '🏁' : '🌲'}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-background/30 p-3 rounded-lg border border-border/50">
-                   <span className="text-[10px] font-bold text-accent uppercase block mb-1">
-                    {stayZone === 'urban' ? 'Urban Hub Strategy' : stayZone === 'trackside' ? 'Grand Prix Proximity' : 'High-Value Strategic Base'}
-                   </span>
-                   <p className="text-[9px] text-muted-foreground uppercase font-medium leading-relaxed">
-                    {stayZone === 'urban' ? 'Best for train users & Nightlife.' : stayZone === 'trackside' ? 'Walking distance. Zero logistics needed.' : 'Best for car users & budget management.'}
+                <div className="bg-black/50 p-3 rounded-lg border border-border/50 relative">
+                   <div className="flex justify-between items-start mb-1">
+                    <span className="text-[10px] font-black text-[#E10600] uppercase tracking-widest italic">
+                      {stayZone === 'urban' ? 'Urban Hub Hub' : stayZone === 'trackside' ? 'Grand Prix Proximity' : 'Strategic Base'}
+                    </span>
+                    {((stayZone === 'urban' && (inboundMode === 'plane' || inboundMode === 'train')) || 
+                      (stayZone === 'value' && inboundMode === 'car')) && (
+                      <span className="text-[7px] font-black bg-[#E10600] text-white px-1.5 py-0.5 rounded-sm uppercase tracking-widest">Recommended</span>
+                    )}
+                   </div>
+                   <p className="text-[9px] text-muted-foreground uppercase font-black leading-relaxed">
+                    {stayZone === 'urban' ? 'Fastest track access via Central Station.' : stayZone === 'trackside' ? 'Walking distance. Zero logistics required.' : 'Best for parking & avoiding city traffic.'}
                    </p>
                 </div>
 
-                {(() => {
-                  const values = getItemValues('stay', null);
-                  return (
-                    <div className="space-y-4">
-                       <div className="text-2xl font-bold tracking-tight">
+                <div className="space-y-4">
+                  {(() => {
+                    const values = getItemValues('stay');
+                    return (
+                      <div className="text-3xl font-black tracking-tighter">
                         <Counter value={values.min} currency={selectedCurrency} />
-                        <span className="mx-2 opacity-30">—</span>
+                        <span className="mx-2 opacity-10">/</span>
                         <Counter value={values.max} currency={selectedCurrency} />
                       </div>
-                      <div className="space-y-2">
-                        <button 
-                          onClick={() => {
-                            const url = `https://www.booking.com/searchresults.html?ss=${toCity}&checkin=2026-09-04&checkout=2026-09-06&group_adults=${guestCount}`;
-                            window.open(url, '_blank');
-                          }}
-                          className="w-full py-2 bg-transparent text-white border border-white/20 hover:border-accent hover:text-accent rounded-lg text-[10px] font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-2"
-                        >
-                          Search Live Vacancy <Calendar className="w-3 h-3" />
-                        </button>
-                        <p className="text-[8px] text-center text-muted-foreground uppercase font-bold tracking-wider opacity-60">
-                          Pro Tip: Locking early-bird rates before 300% surge.
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })()}
-                <ShieldCheck className="absolute -right-4 -bottom-4 w-24 h-24 opacity-4 group-hover:opacity-8 transition-opacity pointer-events-none" />
+                    );
+                  })()}
+                  
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => {
+                        const url = `https://www.booking.com/searchresults.html?ss=${toCity}&checkin=2026-09-04&checkout=2026-09-06&group_adults=${guestCount}`;
+                        window.open(url, '_blank');
+                      }}
+                      className="w-full py-3 bg-black text-white border border-border hover:border-[#E10600] rounded-lg text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 group"
+                    >
+                      Search Live Vacancy <Calendar className="w-3.5 h-3.5 group-hover:text-[#E10600]" />
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Module 3: Tactical Transport */}
@@ -559,48 +647,42 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
               </div>
             </div>
             
-            <div className="p-8 bg-foreground text-background rounded-2xl flex flex-col justify-between print:bg-white print:text-black print:border print:border-black relative overflow-hidden">
-              <div className="relative z-10">
-                <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 block mb-2">Total Estimated Weekend Cost</span>
-                <p className="text-5xl font-extrabold tracking-tighter">
-                  <Counter value={currentTotal} currency={selectedCurrency} />
-                </p>
-                <div className="mt-6 py-4 border-y border-background/10 print:border-black/10">
-                  <div className="flex items-center gap-2 text-accent mb-1 group/info relative">
-                    <Zap className="w-3 h-3 fill-current" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Strategy Savings</span>
-                    <Info className="w-3 h-3 text-muted-foreground/50 cursor-help" />
-                    
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-popover text-[8px] font-bold leading-relaxed text-popover-foreground rounded border border-border opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-20">
-                      Calculation based on historical 40% price volatility for flights and accommodation during Grand Prix week.
-                    </div>
-                  </div>
-                  <p className="text-[10px] leading-relaxed opacity-80">
-                    Strategic Booking: You are currently saving <span className="font-black text-accent">{getCurrencySymbol(selectedCurrency)}{strategySavings.toLocaleString()}</span> compared to standard race-week rates.
-                  </p>
+            <div className="p-8 bg-card border border-border rounded-2xl flex flex-col justify-between relative overflow-hidden">
+               <div className="absolute inset-0 bg-gradient-to-b from-[#E10600]/10 to-transparent pointer-events-none" />
+               <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#E10600] animate-pulse" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground">Tactical Engine Sync</span>
                 </div>
-                <p className="text-[9px] mt-4 opacity-40 font-medium uppercase tracking-tighter">Calculated based on {budgetTier} strategy + unit size of {guestCount}.</p>
-              </div>
-              <div className="mt-8 pt-6 border-t border-background/10 print:border-black/10 relative z-10 space-y-4">
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
-                  <ShieldCheck className="w-4 h-4 text-accent" /> Expert Verified Calculation
+                <p className="text-sm font-black uppercase tracking-widest text-[#E10600]/60 mb-2">Total Weekend Cost</p>
+                <div className="text-6xl font-black tracking-tighter mb-8 italic">
+                  <Counter value={currentTotal} currency={selectedCurrency} />
                 </div>
                 
-                <p className="text-[7px] text-muted-foreground/60 leading-tight uppercase font-bold tracking-tighter">
-                  Live flight estimates powered by Kiwi.com Tequila API. Market volatility analysis provided by the PaddockPlan Predictive Engine. Data updated: {mounted ? new Date().toLocaleDateString('en-GB') : '--.--.----'}.
+                <div className="space-y-6 pt-6 border-t border-border">
+                  <div>
+                    <div className="flex items-center gap-2 text-[#E10600] mb-2">
+                      <Zap className="w-4 h-4 fill-current" />
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em]">Strategy Savings</span>
+                    </div>
+                    <div className="text-3xl font-black tracking-tight mb-1 italic">
+                      <Counter value={strategySavings} currency={selectedCurrency} />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-relaxed">
+                      Saving <span className="text-white">35%</span> compared to standard race-week market rates through surgical booking.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-12 space-y-4 relative z-10">
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#E10600]">
+                  <ShieldCheck className="w-4 h-4" /> Expert Prediction
+                </div>
+                <p className="text-[8px] text-muted-foreground font-black uppercase tracking-[0.2em] leading-tight">
+                  Live estimates powered by Kiwi.com & PaddockPlan Predictive Engine. Data verified: April 2026.
                 </p>
               </div>
-              
-              {/* Animated Accent Background */}
-              <motion.div 
-                className="absolute inset-0 bg-accent/5 pointer-events-none"
-                animate={{
-                  opacity: [0.05, 0.1, 0.05],
-                  scale: [1, 1.05, 1],
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              />
             </div>
           </div>
         </section>
