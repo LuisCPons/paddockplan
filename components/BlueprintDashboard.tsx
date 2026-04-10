@@ -88,6 +88,11 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   const [originAirport, setOriginAirport] = useState('');
   const [isFlightLoading, setIsFlightLoading] = useState(false);
   const [flightCostOverride, setFlightCostOverride] = useState<{min: number; max: number} | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const tierMultipliers = {
     budget: 0.8,
@@ -464,7 +469,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 </div>
                 
                 <p className="text-[7px] text-muted-foreground/60 leading-tight uppercase font-bold tracking-tighter">
-                  Live flight estimates powered by Kiwi.com Tequila API. Market volatility analysis provided by the PaddockPlan Predictive Engine. Data updated: {new Date().toLocaleDateString('en-GB')}.
+                  Live flight estimates powered by Kiwi.com Tequila API. Market volatility analysis provided by the PaddockPlan Predictive Engine. Data updated: {mounted ? new Date().toLocaleDateString('en-GB') : '--.--.----'}.
                 </p>
               </div>
               
