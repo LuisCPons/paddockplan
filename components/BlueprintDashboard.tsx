@@ -589,7 +589,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   </div>
                 </div>
                 {(() => {
-                  const values = getItemValues('transport', null);
+                  const values = getItemValues('transport');
                   return (
                     <div>
                       <div className="text-2xl font-bold tracking-tight">
@@ -627,7 +627,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 </div>
                 
                 {(() => {
-                  const values = getItemValues('misc', null);
+                  const values = getItemValues('misc');
                   const merchVal = merchEnabled ? convert(merchRates[budgetTier] * guestCount, 'EUR') : 0;
                   return (
                     <div className="space-y-4">
