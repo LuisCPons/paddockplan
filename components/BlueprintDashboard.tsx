@@ -95,6 +95,10 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   const [strategistNote, setStrategistNote] = useState('Awaiting strategic command...');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Inbound Logistics Terminal State
+  const [showBriefingModal, setShowBriefingModal] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+
   const [isFlightLoading, setIsFlightLoading] = useState(false);
   const [flightCostOverride, setFlightCostOverride] = useState<{min: number; max: number} | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -117,24 +121,22 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
   const currentMultiplier = tierMultipliers[budgetTier];
 
-  // Mock Kiwi API Handler
+  const gpDate = new Date('2026-09-04');
+  const isSurging = mounted && (gpDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24) < 180;
+
   useEffect(() => {
     if (originAirport.length === 3) {
-      setIsFlightLoading(true);
-      // Simulate API latency
+      setIsScanning(true);
       const timer = setTimeout(() => {
-        // Mock logic: some random variance based on airport code
         const charCodeSum = originAirport.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         const baseFlight = 200 + (charCodeSum % 300);
         setFlightCostOverride({
           min: Math.round(baseFlight * 0.9),
           max: Math.round(baseFlight * 1.2)
         });
-        setIsFlightLoading(false);
-      }, 1200);
+        setIsScanning(false);
+      }, 1500);
       return () => clearTimeout(timer);
-    } else if (originAirport === '') {
-      setFlightCostOverride(null);
     }
   }, [originAirport]);
 
@@ -415,96 +417,116 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
               
-              {/* Card 1: Inbound Logistics */}
-              <div className="p-6 border border-border bg-card/20 rounded-xl space-y-4 relative overflow-hidden group">
+              {/* Card 1: Inbound Logistics Terminal */}
+              <div className="p-6 border border-[#1A1A1A] bg-black rounded-xl space-y-4 relative overflow-hidden group">
+                {/* Hardware Scanning Animation */}
+                {isScanning && (
+                  <motion.div 
+                    initial={{ top: '-10%' }}
+                    animate={{ top: '110%' }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-[#E10600] to-transparent z-20 opacity-40"
+                  />
+                )}
+
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/40">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#E10600] shadow-[0_0_8px_#E10600] animate-pulse" />
-                    {inboundMode === 'plane' ? 'Inbound Logistics' : inboundMode === 'train' ? 'Rail Strategy' : 'Drive Logistics'}
+                    Logistics Terminal
                   </div>
-                  <div className="flex bg-black border border-border p-0.5 rounded-lg h-8">
+                  <div className="flex bg-[#0A0A0A] border border-[#1A1A1A] p-0.5 rounded-lg h-9">
                     {(['plane', 'train', 'car'] as const).map((m) => (
                       <button 
                         key={m}
                         onClick={() => setInboundMode(m)}
-                        className={`relative z-10 px-3 text-[10px] font-black transition-colors ${inboundMode === m ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
+                        className={`relative z-10 px-4 text-[10px] font-black transition-colors ${inboundMode === m ? 'text-white' : 'text-white/30 hover:text-white'}`}
                       >
-                        {inboundMode === m && <motion.div layoutId="inbound-bg-new" className="absolute inset-x-0 inset-y-0.5 bg-[#E10600] rounded-md -z-10" />}
+                        {inboundMode === m && <motion.div layoutId="inbound-bg-terminal" className="absolute inset-x-0 inset-y-0.5 bg-[#E10600] rounded-md -z-10" />}
                         {m === 'plane' ? '✈️' : m === 'train' ? '🚆' : '🚗'}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground block opacity-50">Origin City</span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 block ml-1">Origin_City</span>
                     <input 
                       type="text"
                       value={fromCity}
                       onChange={(e) => setFromCity(e.target.value)}
-                      className="w-full bg-black/50 border border-border text-[11px] font-black py-2 px-3 rounded-lg focus:outline-none focus:border-[#E10600] transition-colors uppercase"
+                      onFocus={() => setIsScanning(true)}
+                      onBlur={() => setIsScanning(false)}
+                      className="w-full bg-[#0A0A0A] border border-[#1A1A1A] text-[11px] font-mono font-black py-2.5 px-4 rounded-lg focus:outline-none focus:border-[#E10600] transition-colors uppercase placeholder:opacity-10"
+                      placeholder="ENTER_ORIGIN"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground block opacity-50">Strategic Hub</span>
-                    <input 
-                      type="text"
-                      value={toCity}
-                      readOnly
-                      className="w-full bg-black/50 border border-border text-[11px] font-black py-2 px-3 rounded-lg opacity-50 uppercase"
-                    />
+                  <div className="space-y-1.5">
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 block ml-1">Tactical_Hub</span>
+                    <div className="w-full bg-[#0A0A0A]/50 border border-[#1A1A1A] text-[11px] font-mono font-black py-2.5 px-4 rounded-lg text-white/20 uppercase">
+                      {toCity}
+                    </div>
                   </div>
                 </div>
 
                 {inboundMode === 'plane' && (
-                  <div className="flex items-center justify-between gap-3 bg-black/50 p-2.5 rounded-lg border border-border/50">
-                    <span className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground">Destination Hub</span>
-                    <div className="relative">
+                  <div className="space-y-1.5">
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 block ml-1">Arrival_Hub_Sorting</span>
+                    <div className="bg-[#0A0A0A] border border-[#1A1A1A] px-4 py-2 rounded-lg group/select relative">
                       <select 
                         value={arrivalAirport}
                         onChange={(e) => setArrivalAirport(e.target.value as any)}
-                        className="bg-transparent text-[10px] font-black uppercase outline-none appearance-none cursor-pointer pr-6"
+                        className="w-full bg-transparent text-[10px] font-mono font-black uppercase outline-none appearance-none cursor-pointer pr-8 py-1.5"
                       >
-                        <option value="LIN">LIN (Central) [REC]</option>
-                        <option value="BGY">BGY (Bergamo)</option>
-                        <option value="MXP">MXP (Malpensa)</option>
+                        <option value="LIN">LIN - Tactical Recommendation [20m to City]</option>
+                        <option value="BGY">BGY - Value Option [45m via Direct Rail]</option>
+                        <option value="MXP">MXP - Capacity Hub [55m Express Train]</option>
                       </select>
-                      <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 text-[#E10600]" />
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#E10600]" />
                     </div>
                   </div>
                 )}
 
-                <div className="space-y-4 pt-2">
-                  {(() => {
-                    const values = getItemValues('inbound');
-                    return (
-                      <div className="text-3xl font-black tracking-tighter">
-                        <Counter value={values.min} currency={selectedCurrency} />
-                        {values.min !== values.max && (
-                          <>
-                            <span className="mx-2 opacity-10">/</span>
+                <div className="pt-4 space-y-4">
+                  <div className="flex items-end justify-between">
+                    {(() => {
+                      const values = getItemValues('inbound');
+                      return (
+                        <div className="text-4xl font-black tracking-tighter text-white">
+                          <Counter value={values.min} currency={selectedCurrency} />
+                          {values.min !== values.max && (
+                            <span className="mx-2 opacity-10 text-2xl">/</span>
+                          )}
+                          {values.min !== values.max && (
                             <Counter value={values.max} currency={selectedCurrency} />
-                          </>
-                        )}
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Volatility Indicator */}
+                    <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded flex-col items-end`}>
+                      <div className="flex items-center gap-1.5">
+                         {isSurging ? <RotateCcw className="w-3 h-3 text-[#E10600] rotate-180" /> : <div className="w-2 h-2 rounded-full bg-green-500" />}
+                         <span className={`text-[9px] font-black uppercase tracking-[0.1em] ${isSurging ? 'text-[#E10600]' : 'text-green-500'}`}>
+                           {isSurging ? 'Volatility: High' : 'Market: Stable'}
+                         </span>
                       </div>
-                    );
-                  })()}
+                      <span className="text-[7px] font-bold text-white/20 uppercase">Prices Surging</span>
+                    </div>
+                  </div>
                   
-                  <button 
-                    onClick={() => {
-                      const url = inboundMode === 'plane' 
-                        ? `https://www.kiwi.com/en/search/results/${fromCity}/${arrivalAirport}/2026-09-04/2026-09-06?adults=${guestCount}`
-                        : inboundMode === 'train' 
-                          ? `https://www.thetrainline.com/en/search/results?from=${fromCity}&to=${toCity}&outwardDate=2026-09-04&adults=${guestCount}`
-                          : `https://www.google.com/maps/dir/${fromCity}/${toCity}`;
-                      window.open(url, '_blank');
-                    }}
-                    className="w-full py-3 bg-[#E10600] text-white rounded-lg text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2 group"
-                  >
-                    {inboundMode === 'plane' ? 'Find Best Flights' : inboundMode === 'train' ? 'View Rail options' : 'View Road Strategy'}
-                    <Zap className="w-3.5 h-3.5 group-hover:animate-pulse" />
-                  </button>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => setShowBriefingModal(true)}
+                      className="w-full py-4 bg-white text-black rounded-lg text-xs font-black uppercase tracking-[0.2em] hover:bg-[#E10600] hover:text-white transition-all flex items-center justify-center gap-2 group"
+                    >
+                      Prepare Deployment <ShieldCheck className="w-4 h-4 group-hover:animate-pulse" />
+                    </button>
+                    <p className="text-[8px] text-center text-white/20 font-black uppercase tracking-[0.2em]">
+                      Live Market Data via Kiwi.com Tequila API & PaddockPlan Predictive Index
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -949,7 +971,106 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
       <QuickActionBar emergencyInfo={data.emergencyInfo} />
 
+      {/* Tactical Briefing Modal */}
+      <AnimatePresence>
+        {showBriefingModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowBriefingModal(false)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-xl bg-black border border-[#1A1A1A] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(225,6,0,0.1)]"
+            >
+              <div className="p-8 space-y-8">
+                <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-6">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#E10600]">Mission Briefing</span>
+                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">
+                      {fromCity} <span className="text-white/20 mx-2">to</span> {arrivalAirport}
+                    </h3>
+                  </div>
+                  <button 
+                    onClick={() => setShowBriefingModal(false)}
+                    className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                  >
+                    <RotateCcw className="w-5 h-5 text-white/40" />
+                  </button>
+                </div>
+
+                <div className="space-y-8 relative py-4">
+                   {/* Vertical Timeline Line */}
+                   <div className="absolute left-3 top-0 bottom-0 w-px bg-gradient-to-b from-[#E10600] transparent to-white/5" />
+                   
+                   {[
+                     { time: '10:45', action: `Depart ${fromCity}`, sub: 'Recommended: Iberia / Air Europa', icon: '🛫' },
+                     { time: '12:45', action: `Arrival at ${arrivalAirport}`, sub: 'Strategic Hub Clearance', icon: '🛬' },
+                     { time: '13:15', action: 'Last-Mile Transfer', sub: arrivalAirport === 'LIN' ? 'X73 Tactical Shuttle to Center' : 'Express Rail to Monza', icon: '🚕' },
+                     { time: '14:00', action: 'Hotel Sync & Hub Check-in', sub: 'Deployment Ready', icon: '📍' }
+                   ].map((step, i) => (
+                     <div key={i} className="flex gap-6 relative ml-1 group">
+                        <div className="w-4 h-4 rounded-full bg-black border-2 border-[#E10600] z-10 mt-1 relative">
+                          <div className="absolute inset-1 rounded-full bg-[#E10600] animate-pulse" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-mono font-black text-white/40">{step.time}</span>
+                            <span className="text-sm font-black uppercase tracking-widest">{step.action}</span>
+                          </div>
+                          <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">{step.sub}</p>
+                        </div>
+                     </div>
+                   ))}
+                </div>
+
+                <div className="space-y-6 pt-4">
+                  <div className="p-4 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl flex items-center justify-between">
+                    <div className="space-y-1">
+                      <span className="text-[8px] font-black uppercase tracking-widest text-white/30">Total Guests</span>
+                      <p className="text-lg font-mono font-black">{guestCount} Tactical Unity</p>
+                    </div>
+                    <div className="h-10 w-px bg-[#1A1A1A]" />
+                    <div className="text-right space-y-1">
+                      <span className="text-[8px] font-black uppercase tracking-widest text-[#E10600]">Tactical Est.</span>
+                      <p className="text-lg font-mono font-black">
+                        {getItemValues('inbound').min.toLocaleString()}€
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-[9px] text-white/30 font-bold uppercase leading-relaxed text-center">
+                    Prices are tactical estimates and include a <span className="text-white">15% historical surge buffer</span> for Grand Prix weekends.
+                  </p>
+
+                  <button 
+                    onClick={() => {
+                      const url = inboundMode === 'plane' 
+                        ? `https://www.kiwi.com/en/search/results/${fromCity}/${arrivalAirport}/2026-09-04/2026-09-07?adults=${guestCount}`
+                        : inboundMode === 'train' 
+                          ? `https://www.thetrainline.com/en/search/results?from=${fromCity}&to=${toCity}&outwardDate=2026-09-04&adults=${guestCount}`
+                          : `https://www.google.com/maps/dir/${fromCity}/${toCity}`;
+                      window.open(url, '_blank');
+                    }}
+                    className="w-full py-5 bg-[#E10600] text-white rounded-xl text-sm font-black uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all shadow-[0_10px_30px_rgba(225,6,0,0.3)] flex items-center justify-center gap-3"
+                  >
+                    Execute Booking <Zap className="w-4 h-4 fill-current" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&display=swap');
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
         @media print {
           html, body {
             background: white !important;
