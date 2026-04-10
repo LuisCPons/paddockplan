@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Flag, MessageCircle, Camera, Mail } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
+import { MessageCircle, Camera, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -7,9 +8,8 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
           <div className="md:col-span-1">
-            <Link href="/" className="font-extrabold text-2xl tracking-tight text-foreground flex items-center gap-2 mb-6">
-              <Flag className="w-5 h-5 text-accent" strokeWidth={2.5} />
-              <span className="uppercase tracking-widest text-lg">Paddock<span className="text-accent">Plan</span></span>
+            <Link href="/" className="hover:opacity-90 transition-opacity mb-8 block">
+              <BrandLogo showTagline={true} size="sm" className="items-start" />
             </Link>
             <p className="text-sm font-light text-foreground/60 leading-relaxed mb-8 max-w-xs">
               The premier independent digital travel planner for the global motorsport community.

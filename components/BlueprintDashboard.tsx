@@ -26,6 +26,7 @@ import { formatPrice } from '@/lib/formatPrice';
 import { CurrencySelector } from './CurrencySelector';
 import { CircuitLayout } from './CircuitLayout';
 import { QuickActionBar } from './QuickActionBar';
+import { BrandLogo } from './BrandLogo';
 
 interface BlueprintDashboardProps {
   data: any;
