@@ -28,18 +28,18 @@ export function Hero() {
   return (
     <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-8">
+        <div className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-8">
           
           {/* Left Text Block */}
           <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="flex-1 max-w-2xl text-left"
+            className="flex-1 w-full max-w-2xl text-left"
           >
             <motion.div
               variants={itemVariants}
-              className="inline-flex items-center gap-3 mb-8"
+              className="inline-flex items-center gap-3 mb-6 md:mb-8"
             >
               <span className="w-12 h-px bg-accent" />
               <span className="text-xs font-bold uppercase tracking-widest text-accent">The 2026 Collection</span>
@@ -47,7 +47,7 @@ export function Hero() {
 
             <motion.h1 
               variants={itemVariants}
-              className="text-5xl md:text-7xl font-bold tracking-tighter mb-8 leading-[1.05] text-foreground font-manrope"
+              className="text-[2.2rem] md:text-[4rem] font-bold tracking-tighter mb-8 leading-[1.05] text-foreground font-manrope"
             >
               The Definitive <br className="hidden md:block" />
               Digital <span className="italic font-light text-accent">Blueprint</span> for Grand Prix Fans.
@@ -62,13 +62,13 @@ export function Hero() {
 
             <motion.div 
               variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-6 items-start mb-8"
+              className="flex flex-col sm:flex-row gap-4 md:gap-6 items-stretch sm:items-start mb-12"
             >
-              <Link href="#plan" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-accent text-white px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_30px_rgba(225,6,0,0.3)]">
+              <Link href="#plan" className="flex items-center justify-center gap-3 bg-accent text-white px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_30px_rgba(225,6,0,0.3)]">
                 Generate Blueprint
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="#guides" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-transparent border border-border text-foreground px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:border-accent transition-all duration-300">
+              <Link href="#guides" className="flex items-center justify-center gap-3 bg-transparent border border-border text-foreground px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:border-accent transition-all duration-300">
                 View Details
               </Link>
             </motion.div>
@@ -90,9 +90,9 @@ export function Hero() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="flex-1 w-full lg:w-auto relative group"
+            className="flex-1 w-full lg:w-auto relative group mb-12 lg:mb-0"
           >
-            <div className="relative aspect-square w-full max-w-xl mx-auto lg:ml-auto overflow-hidden bg-[#0A0A0A] border border-border/50 rounded-2xl shadow-2xl">
+            <div className="relative aspect-square md:aspect-video lg:aspect-square w-full max-w-xl mx-auto lg:ml-auto overflow-hidden bg-[#0A0A0A] border border-border/50 rounded-2xl shadow-2xl">
               {/* Grid Overlay */}
               <div className="absolute inset-0 z-0 opacity-20" style={{ 
                 backgroundImage: `linear-gradient(#1A1A1A 1px, transparent 1px), linear-gradient(90deg, #1A1A1A 1px, transparent 1px)`,
@@ -103,15 +103,15 @@ export function Hero() {
                 backgroundSize: '10px 10px'
               }} />
               
-              <div className="absolute inset-0 flex items-center justify-center p-12">
+              <div className="absolute inset-0 flex items-center justify-center p-6 md:p-12">
                 <CircuitSchematicEngine />
               </div>
 
               {/* Technical Labels */}
-              <div className="absolute top-6 left-6 font-mono text-[8px] uppercase tracking-widest text-accent/40">
+              <div className="absolute top-4 left-4 md:top-6 md:left-6 font-mono text-[8px] uppercase tracking-widest text-accent/40">
                 Schematic: Type-26-R <br /> Scale: 1:25000
               </div>
-              <div className="absolute bottom-6 right-6 font-mono text-[8px] uppercase tracking-widest text-accent/40">
+              <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 font-mono text-[8px] uppercase tracking-widest text-accent/40">
                 Data: Verified 2026 <br /> Status: Ready
               </div>
             </div>

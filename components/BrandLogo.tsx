@@ -14,12 +14,7 @@ export function BrandLogo({ className = '', size = 'md' }: BrandLogoProps) {
       <img 
         src="/brand-logo.png" 
         alt="PaddockPlan Logo" 
-        style={{ 
-          height: '45px', 
-          width: 'auto', 
-          objectFit: 'contain' 
-        }}
-        className="block"
+        className="block h-8 md:h-[45px] w-auto object-contain"
       />
     </div>
   );
