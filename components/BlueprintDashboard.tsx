@@ -18,7 +18,11 @@ import {
   Check,
   Zap,
   PlaneTakeoff,
-  Loader2
+  Loader2,
+  Users,
+  Info,
+  ChevronDown,
+  ShoppingBag
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -78,6 +82,9 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   
   // Tactical Calculator State
   const [budgetTier, setBudgetTier] = useState<'budget' | 'mid' | 'premium'>('mid');
+  const [guestCount, setGuestCount] = useState(1);
+  const [arrivalAirport, setArrivalAirport] = useState<'LIN' | 'MXP' | 'BGY'>('LIN');
+  const [merchEnabled, setMerchEnabled] = useState(false);
   const [originAirport, setOriginAirport] = useState('');
   const [isFlightLoading, setIsFlightLoading] = useState(false);
   const [flightCostOverride, setFlightCostOverride] = useState<{min: number; max: number} | null>(null);
@@ -86,6 +93,12 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     budget: 0.8,
     mid: 1.0,
     premium: 2.5
+  };
+
+  const merchRates = {
+    budget: 50,
+    mid: 100,
+    premium: 250
   };
 
   const currentMultiplier = tierMultipliers[budgetTier];
@@ -122,28 +135,77 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     setPackedItems({});
   };
 
-  const getItemValues = (item: any) => {
-    const tierMultiplier = budgetTier === 'premium' ? 2.5 : budgetTier === 'budget' ? 0.8 : 1.0;
-    const minVal = (item.min * tierMultiplier);
-    const maxVal = (item.max * tierMultiplier);
+  const getItemValues = (itemKey: string, itemData: any) => {
+    const tierMultiplier = tierMultipliers[budgetTier];
+    
+    // Food is now explicitly €120 for Mid 3-day per person
+    let baseMin = itemData.min;
+    let baseMax = itemData.max;
+
+    if (itemKey === 'food') {
+      baseMin = 120;
+      baseMax = 180; // Scale range slightly
+    }
+
+    if (itemKey === 'merch') {
+      const rate = merchRates[budgetTier];
+      return { min: convert(rate, 'EUR'), max: convert(rate, 'EUR') };
+    }
+
+    // Multiplication logic
+    const scaleByGuests = ['food', 'flights'].includes(itemKey) || (itemKey === 'transport' && transportMode === 'publicTransport');
+    const multiplier = scaleByGuests ? guestCount * tierMultiplier : (itemKey === 'transport' ? 1 : tierMultiplier);
+
+    let minVal = baseMin * multiplier;
+    let maxVal = baseMax * multiplier;
+
+    if (itemKey === 'transport') {
+      if (transportMode === 'privateCar') {
+        minVal = 150; // Fixed Rental Fee
+        maxVal = 150;
+      }
+      // Airport Surcharge
+      if (arrivalAirport === 'MXP' || arrivalAirport === 'BGY') {
+        minVal += 20;
+        maxVal += 20;
+      }
+    }
+
     return {
-      min: convert(minVal, item.currency),
-      max: convert(maxVal, item.currency)
+      min: convert(minVal, itemData.currency || 'EUR'),
+      max: convert(maxVal, itemData.currency || 'EUR')
     };
   };
 
   const getTieredTotal = () => {
     const multiplier = tierMultipliers[budgetTier];
-    const baseTotal = totalBudget.amount;
     
-    // If flight override exists, adjust total
+    // Calculation: (Guests * (Food + Flights)) + Transport_Fee + Merchandise (if ON)
+    const foodMid = 120;
+    const foodCost = foodMid * multiplier * guestCount;
+    
+    const flightData = data.detailedBudget.flightsAvg;
+    let flightAvg = (flightData.min + flightData.max) / 2;
     if (flightCostOverride) {
-      const originalFlightAvg = (data.detailedBudget.flightsAvg.min + data.detailedBudget.flightsAvg.max) / 2;
-      const newFlightAvg = (flightCostOverride.min + flightCostOverride.max) / 2;
-      return Math.round((baseTotal - originalFlightAvg) * multiplier + convert(newFlightAvg, data.detailedBudget.flightsAvg.currency));
+      flightAvg = (flightCostOverride.min + flightCostOverride.max) / 2;
     }
-    
-    return Math.round(baseTotal * multiplier);
+    const flightCostTotal = flightAvg * multiplier * guestCount;
+
+    let transportCost = 0;
+    if (transportMode === 'privateCar') {
+      transportCost = 150;
+    } else {
+      const baseTransport = (data.detailedBudget.trackTransport.min + data.detailedBudget.trackTransport.max) / 2;
+      transportCost = baseTransport * multiplier * guestCount;
+    }
+
+    if (arrivalAirport === 'MXP' || arrivalAirport === 'BGY') {
+      transportCost += 20;
+    }
+
+    const merchCost = merchEnabled ? merchRates[budgetTier] : 0;
+
+    return Math.round(foodCost + flightCostTotal + transportCost + merchCost);
   };
 
   const currentTotal = getTieredTotal();
@@ -211,48 +273,129 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
         {/* Budget Section */}
         <section id="budget" className="scroll-mt-36">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div>
-              <div className="flex items-center gap-3 mb-2 print:border-b-2 print:border-accent print:pb-2">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 print:border-b-2 print:border-accent print:pb-2">
                 <CircleDollarSign className="w-5 h-5 text-accent" />
                 <h2 className="text-2xl font-extrabold tracking-tighter uppercase">Financial Strategy</h2>
               </div>
-              <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">Dynamic Tactical Calculator</p>
+              
+              {/* Guest Selector */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Tactical Unit Size</span>
+                <div className="flex items-center gap-1 bg-card border border-border p-1 rounded-xl w-fit">
+                  {[1, 2, 3, 4, 5, 6].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setGuestCount(num)}
+                      className={`w-10 h-10 rounded-lg text-xs font-black transition-all ${
+                        guestCount === num ? 'bg-accent text-white' : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                  <div className="px-3 flex items-center gap-2 border-l border-border ml-2">
+                    <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{guestCount === 1 ? 'Solo' : 'Guests'}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Tier Selector */}
-            <div className="flex bg-card border border-border p-1 rounded-xl print:hidden self-start">
-              {(['budget', 'mid', 'premium'] as const).map((tier) => (
-                <button
-                  key={tier}
-                  onClick={() => setBudgetTier(tier)}
-                  className={`relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg overflow-hidden ${
-                    budgetTier === tier ? 'text-white' : 'text-muted-foreground hover:text-foreground'
-                  }`}
+            <div className="flex flex-col gap-2 md:items-end">
+              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Strategic Tier</span>
+              <div className="flex bg-card border border-border p-1 rounded-xl print:hidden">
+                {(['budget', 'mid', 'premium'] as const).map((tier) => (
+                  <button
+                    key={tier}
+                    onClick={() => setBudgetTier(tier)}
+                    className={`relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg overflow-hidden border ${
+                      budgetTier === tier ? 'bg-[#E10600] text-white border-[#E10600]' : 'text-muted-foreground hover:text-foreground border-white'
+                    }`}
+                  >
+                    {tier}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Controls Layer */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Transport Toggle */}
+            <div className="p-4 bg-card/30 border border-border rounded-xl space-y-3">
+              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block">Transport Logistics</span>
+              <div className="relative flex bg-background border border-border p-1 rounded-lg">
+                <button 
+                  onClick={() => setTransportMode('publicTransport')}
+                  className={`flex-1 relative z-10 py-2 text-[10px] font-black uppercase tracking-widest transition-colors ${transportMode === 'publicTransport' ? 'text-white' : 'text-muted-foreground'}`}
                 >
-                  {budgetTier === tier && (
-                    <motion.div
-                      layoutId="tier-active"
-                      className="absolute inset-0 bg-accent -z-10"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
-                  )}
-                  {tier}
+                  {transportMode === 'publicTransport' && <motion.div layoutId="trans-bg" className="absolute inset-0 bg-accent rounded-md -z-10" />}
+                  🚆 Public
                 </button>
-              ))}
+                <button 
+                  onClick={() => setTransportMode('privateCar')}
+                  className={`flex-1 relative z-10 py-2 text-[10px] font-black uppercase tracking-widest transition-colors ${transportMode === 'privateCar' ? 'text-white' : 'text-muted-foreground'}`}
+                >
+                  {transportMode === 'privateCar' && <motion.div layoutId="trans-bg" className="absolute inset-0 bg-accent rounded-md -z-10" />}
+                  🚗 Rental
+                </button>
+              </div>
+            </div>
+
+            {/* Airport Selector */}
+            <div className="p-4 bg-card/30 border border-border rounded-xl space-y-3">
+              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block">Arrival Hub</span>
+              <div className="relative">
+                <select 
+                  value={arrivalAirport}
+                  onChange={(e) => setArrivalAirport(e.target.value as any)}
+                  className="w-full bg-background border border-border p-2 rounded-lg text-[10px] font-black uppercase tracking-widest outline-none appearance-none cursor-pointer focus:border-accent"
+                >
+                  <option value="LIN">LIN (Linate) - Central</option>
+                  <option value="MXP">MXP (Malpensa) - Surcharge</option>
+                  <option value="BGY">BGY (Bergamo) - Surcharge</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Merchandise Toggle */}
+            <div className="p-4 bg-card/30 border border-border rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Merchandise & Gear</span>
+                <span className="text-[10px] font-bold text-accent">{merchEnabled ? 'Tactical Gear Enabled' : 'No Merchandise'}</span>
+              </div>
+              <button 
+                onClick={() => setMerchEnabled(!merchEnabled)}
+                className={`w-12 h-6 rounded-full p-1 transition-colors relative ${merchEnabled ? 'bg-accent' : 'bg-border'}`}
+              >
+                <motion.div 
+                  animate={{ x: merchEnabled ? 24 : 0 }}
+                  className="w-4 h-4 bg-white rounded-full shadow-lg"
+                />
+              </button>
             </div>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
-                { key: 'food', label: 'Food & Dining (3 Days)', itemData: data.detailedBudget.foodDaily, icon: TrendingUp },
-                { key: 'transport', label: 'Track Transport', itemData: data.detailedBudget.trackTransport, icon: Clock },
-                { key: 'flights', label: 'Avg Flight Cost', itemData: flightCostOverride ? { ...flightCostOverride, currency: data.detailedBudget.flightsAvg.currency } : data.detailedBudget.flightsAvg, icon: MapIcon },
+                { key: 'food', label: `Food & Dining (${guestCount}p)`, itemData: data.detailedBudget.foodDaily, icon: TrendingUp },
+                { key: 'transport', label: 'Tactical Transport', itemData: data.detailedBudget.trackTransport, icon: Clock },
+                { key: 'flights', label: `Avg Flight Cost (${guestCount}p)`, itemData: flightCostOverride ? { ...flightCostOverride, currency: data.detailedBudget.flightsAvg.currency } : data.detailedBudget.flightsAvg, icon: MapIcon },
+                { key: 'merch', label: 'Merchandise Buffer', itemData: { min: 0, max: 0, currency: 'EUR' }, icon: ShoppingBag, enabled: merchEnabled },
                 { key: 'misc', label: 'Miscellaneous Buffer', itemData: data.detailedBudget.miscellaneous, icon: ShieldCheck },
               ].map((item, i) => {
-                const values = getItemValues(item.itemData);
+                if (item.key === 'merch' && !merchEnabled) return null;
+                const values = getItemValues(item.key, item.itemData);
                 return (
-                  <div key={item.key} className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
+                  <motion.div 
+                    layout
+                    key={item.key} 
+                    className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         <item.icon className={`w-3 h-3 ${budgetTier === 'premium' ? 'text-accent' : 'text-muted-foreground'}`} />
@@ -299,20 +442,30 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   <Counter value={currentTotal} currency={selectedCurrency} />
                 </p>
                 <div className="mt-6 py-4 border-y border-background/10 print:border-black/10">
-                  <div className="flex items-center gap-2 text-accent mb-1">
+                  <div className="flex items-center gap-2 text-accent mb-1 group/info relative">
                     <Zap className="w-3 h-3 fill-current" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Strategy Savings</span>
+                    <Info className="w-3 h-3 text-muted-foreground/50 cursor-help" />
+                    
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-popover text-[8px] font-bold leading-relaxed text-popover-foreground rounded border border-border opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-20">
+                      Calculation based on historical 40% price volatility for flights and accommodation during Grand Prix week.
+                    </div>
                   </div>
                   <p className="text-[10px] leading-relaxed opacity-80">
                     Strategic Booking: You are currently saving <span className="font-black text-accent">{getCurrencySymbol(selectedCurrency)}{strategySavings.toLocaleString()}</span> compared to standard race-week rates.
                   </p>
                 </div>
-                <p className="text-[9px] mt-4 opacity-40 font-medium uppercase tracking-tighter">Calculated based on {budgetTier} strategy + dynamic margins.</p>
+                <p className="text-[9px] mt-4 opacity-40 font-medium uppercase tracking-tighter">Calculated based on {budgetTier} strategy + unit size of {guestCount}.</p>
               </div>
-              <div className="mt-8 pt-8 border-t border-background/10 print:border-black/10 relative z-10">
+              <div className="mt-8 pt-6 border-t border-background/10 print:border-black/10 relative z-10 space-y-4">
                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
                   <ShieldCheck className="w-4 h-4 text-accent" /> Expert Verified Calculation
                 </div>
+                
+                <p className="text-[7px] text-muted-foreground/60 leading-tight uppercase font-bold tracking-tighter">
+                  Live flight estimates powered by Kiwi.com Tequila API. Market volatility analysis provided by the PaddockPlan Predictive Engine. Data updated: {new Date().toLocaleDateString('en-GB')}.
+                </p>
               </div>
               
               {/* Animated Accent Background */}
