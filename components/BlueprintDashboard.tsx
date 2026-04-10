@@ -288,7 +288,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
               <div className="flex flex-col gap-2">
                 <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Tactical Unit Size</span>
                 <div className="flex items-center gap-1 bg-card border border-border p-1 rounded-xl w-fit">
-                  {[1, 2, 3, 4, 5, 6].map((num) => (
+                  {[1, 2, 3, 4].map((num) => (
                     <button
                       key={num}
                       onClick={() => setGuestCount(num)}
@@ -301,7 +301,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   ))}
                   <div className="px-3 flex items-center gap-2 border-l border-border ml-2">
                     <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{guestCount === 1 ? 'Solo' : 'Guests'}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{guestCount === 1 ? 'Person' : 'Guests'}</span>
                   </div>
                 </div>
               </div>
@@ -315,8 +315,8 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   <button
                     key={tier}
                     onClick={() => setBudgetTier(tier)}
-                    className={`relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg overflow-hidden border ${
-                      budgetTier === tier ? 'bg-[#E10600] text-white border-[#E10600]' : 'text-muted-foreground hover:text-foreground border-white'
+                    className={`relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg overflow-hidden ${
+                      budgetTier === tier ? 'bg-[#E10600] text-white' : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
                     }`}
                   >
                     {tier}
@@ -326,81 +326,161 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
             </div>
           </div>
           
-          {/* Controls Layer */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Transport Toggle */}
-            <div className="p-4 bg-card/30 border border-border rounded-xl space-y-3">
-              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block">Transport Logistics</span>
-              <div className="relative flex bg-background border border-border p-1 rounded-lg">
-                <button 
-                  onClick={() => setTransportMode('publicTransport')}
-                  className={`flex-1 relative z-10 py-2 text-[10px] font-black uppercase tracking-widest transition-colors ${transportMode === 'publicTransport' ? 'text-white' : 'text-muted-foreground'}`}
-                >
-                  {transportMode === 'publicTransport' && <motion.div layoutId="trans-bg" className="absolute inset-0 bg-accent rounded-md -z-10" />}
-                  🚆 Public
-                </button>
-                <button 
-                  onClick={() => setTransportMode('privateCar')}
-                  className={`flex-1 relative z-10 py-2 text-[10px] font-black uppercase tracking-widest transition-colors ${transportMode === 'privateCar' ? 'text-white' : 'text-muted-foreground'}`}
-                >
-                  {transportMode === 'privateCar' && <motion.div layoutId="trans-bg" className="absolute inset-0 bg-accent rounded-md -z-10" />}
-                  🚗 Rental
-                </button>
-              </div>
-            </div>
-
-            {/* Airport Selector */}
-            <div className="p-4 bg-card/30 border border-border rounded-xl space-y-3">
-              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block">Arrival Hub</span>
-              <div className="relative">
-                <select 
-                  value={arrivalAirport}
-                  onChange={(e) => setArrivalAirport(e.target.value as any)}
-                  className="w-full bg-background border border-border p-2 rounded-lg text-[10px] font-black uppercase tracking-widest outline-none appearance-none cursor-pointer focus:border-accent"
-                >
-                  <option value="LIN">LIN (Linate) - Central</option>
-                  <option value="MXP">MXP (Malpensa) - Surcharge</option>
-                  <option value="BGY">BGY (Bergamo) - Surcharge</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Merchandise Toggle */}
-            <div className="p-4 bg-card/30 border border-border rounded-xl flex items-center justify-between">
-              <div>
-                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Merchandise & Gear</span>
-                <span className="text-[10px] font-bold text-accent">{merchEnabled ? 'Tactical Gear Enabled' : 'No Merchandise'}</span>
-              </div>
-              <button 
-                onClick={() => setMerchEnabled(!merchEnabled)}
-                className={`w-12 h-6 rounded-full p-1 transition-colors relative ${merchEnabled ? 'bg-accent' : 'bg-border'}`}
-              >
-                <motion.div 
-                  animate={{ x: merchEnabled ? 24 : 0 }}
-                  className="w-4 h-4 bg-white rounded-full shadow-lg"
-                />
-              </button>
-            </div>
-          </div>
-          
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {[
-                { key: 'food', label: `Food & Dining (${guestCount}p)`, itemData: data.detailedBudget.foodDaily, icon: TrendingUp },
-                { key: 'transport', label: 'Tactical Transport', itemData: data.detailedBudget.trackTransport, icon: Clock },
-                { key: 'flights', label: `Avg Flight Cost (${guestCount}p)`, itemData: flightCostOverride ? { ...flightCostOverride, currency: data.detailedBudget.flightsAvg.currency } : data.detailedBudget.flightsAvg, icon: MapIcon },
-                { key: 'merch', label: 'Merchandise Buffer', itemData: { min: 0, max: 0, currency: 'EUR' }, icon: ShoppingBag, enabled: merchEnabled },
-                { key: 'misc', label: 'Miscellaneous Buffer', itemData: data.detailedBudget.miscellaneous, icon: ShieldCheck },
-              ].map((item, i) => {
-                if (item.key === 'merch' && !merchEnabled) return null;
-                const values = getItemValues(item.key, item.itemData);
-                return (
-                  <motion.div 
-                    layout
-                    key={item.key} 
-                    className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group"
+              {/* Food Card */}
+              <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <TrendingUp className={`w-3 h-3 ${budgetTier === 'premium' ? 'text-accent' : 'text-muted-foreground'}`} />
+                    Food & Dining ({guestCount}p)
+                  </div>
+                </div>
+                {(() => {
+                  const values = getItemValues('food', data.detailedBudget.foodDaily);
+                  return (
+                    <div>
+                      <div className="text-2xl font-bold tracking-tight">
+                        <Counter value={values.min} currency={selectedCurrency} />
+                        <span className="mx-2 opacity-30">—</span>
+                        <Counter value={values.max} currency={selectedCurrency} />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Calculated for 3-day weekend</p>
+                    </div>
+                  );
+                })()}
+                <TrendingUp className="absolute -right-4 -bottom-4 w-24 h-24 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none" />
+              </div>
+
+              {/* Transport Card */}
+              <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <Clock className="w-3 h-3" />
+                    Tactical Transport
+                  </div>
+                  <div className="relative flex bg-background border border-border p-0.5 rounded-lg h-8">
+                    <button 
+                      onClick={() => setTransportMode('publicTransport')}
+                      className={`relative z-10 px-3 text-[9px] font-black uppercase tracking-tight transition-colors ${transportMode === 'publicTransport' ? 'text-white' : 'text-muted-foreground'}`}
+                    >
+                      {transportMode === 'publicTransport' && <motion.div layoutId="trans-bg-card" className="absolute inset-x-0 inset-y-0.5 bg-accent rounded-md -z-10" />}
+                      🚆 Public
+                    </button>
+                    <button 
+                      onClick={() => setTransportMode('privateCar')}
+                      className={`relative z-10 px-3 text-[9px] font-black uppercase tracking-tight transition-colors ${transportMode === 'privateCar' ? 'text-white' : 'text-muted-foreground'}`}
+                    >
+                      {transportMode === 'privateCar' && <motion.div layoutId="trans-bg-card" className="absolute inset-x-0 inset-y-0.5 bg-accent rounded-md -z-10" />}
+                      🚗 Rental
+                    </button>
+                  </div>
+                </div>
+                {(() => {
+                  const values = getItemValues('transport', data.detailedBudget.trackTransport);
+                  return (
+                    <div>
+                      <div className="text-2xl font-bold tracking-tight">
+                        <Counter value={values.min} currency={selectedCurrency} />
+                        {values.min !== values.max && (
+                          <>
+                            <span className="mx-2 opacity-30">—</span>
+                            <Counter value={values.max} currency={selectedCurrency} />
+                          </>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">
+                        {transportMode === 'publicTransport' ? 'Shuttle & Train strategy' : 'Private rental + Fuel + Track Parking'}
+                      </p>
+                    </div>
+                  );
+                })()}
+                <Clock className="absolute -right-4 -bottom-4 w-24 h-24 opacity-4 group-hover:opacity-8 transition-opacity pointer-events-none" />
+              </div>
+
+              {/* Flight Card */}
+              <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <MapIcon className="w-3 h-3" />
+                    Avg Flight Cost ({guestCount}p)
+                  </div>
+                  <div className="relative">
+                    <select 
+                      value={arrivalAirport}
+                      onChange={(e) => setArrivalAirport(e.target.value as any)}
+                      className="bg-background border border-border p-1.5 pr-6 rounded-lg text-[9px] font-black uppercase tracking-tight outline-none appearance-none cursor-pointer focus:border-accent"
+                    >
+                      <option value="LIN">LIN (Central)</option>
+                      <option value="BGY">BGY (Bergamo)</option>
+                      <option value="MXP">MXP (Malpensa)</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+                  </div>
+                </div>
+                
+                <div className="relative w-full">
+                  <input 
+                    type="text"
+                    placeholder="ENTER DEPARTURE CITY OR CODE"
+                    value={originAirport}
+                    onChange={(e) => setOriginAirport(e.target.value.toUpperCase())}
+                    className="w-full bg-background/50 border border-border text-[10px] font-black py-2 px-3 rounded-lg focus:outline-none focus:border-accent transition-colors placeholder:opacity-50 uppercase"
+                  />
+                  {isFlightLoading && <Loader2 className="w-3 h-3 animate-spin absolute right-3 top-2.5 text-accent" />}
+                </div>
+
+                {(() => {
+                  const values = getItemValues('flights', flightCostOverride ? { ...flightCostOverride, currency: data.detailedBudget.flightsAvg.currency } : data.detailedBudget.flightsAvg);
+                  return (
+                    <div className="text-2xl font-bold tracking-tight">
+                      <Counter value={values.min} currency={selectedCurrency} />
+                      <span className="mx-2 opacity-30">—</span>
+                      <Counter value={values.max} currency={selectedCurrency} />
+                    </div>
+                  );
+                })()}
+                <MapIcon className="absolute -right-4 -bottom-4 w-24 h-24 opacity-4 group-hover:opacity-8 transition-opacity pointer-events-none" />
+              </div>
+
+              {/* Miscellaneous Buffer Card */}
+              <div className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <ShoppingBag className="w-3 h-3" />
+                    Miscellaneous Buffer
+                  </div>
+                  <button 
+                    onClick={() => setMerchEnabled(!merchEnabled)}
+                    className={`flex items-center gap-2 px-2 py-1 rounded-md text-[9px] font-black uppercase transition-all ${merchEnabled ? 'bg-accent text-white' : 'bg-background border border-border text-muted-foreground'}`}
                   >
+                    {merchEnabled ? <Check className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
+                    {merchEnabled ? 'Gear On' : 'Add Gear'}
+                  </button>
+                </div>
+                
+                {(() => {
+                  const values = getItemValues('misc', data.detailedBudget.miscellaneous);
+                  const merchVal = merchEnabled ? convert(merchRates[budgetTier], 'EUR') : 0;
+                  return (
+                    <div className="space-y-4">
+                      <div className="text-2xl font-bold tracking-tight">
+                        <Counter value={values.min + merchVal} currency={selectedCurrency} />
+                        <span className="mx-2 opacity-30">—</span>
+                        <Counter value={values.max + merchVal} currency={selectedCurrency} />
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest pt-2 border-t border-border/50">
+                        <span className="text-muted-foreground">Merchandise Buffer</span>
+                        <span className={merchEnabled ? 'text-accent' : 'text-muted-foreground/30'}>
+                          {merchEnabled ? `${getCurrencySymbol(selectedCurrency)}${merchVal.toLocaleString()}` : '€0 - Opted Out'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+                <ShoppingBag className="absolute -right-4 -bottom-4 w-24 h-24 opacity-4 group-hover:opacity-8 transition-opacity pointer-events-none" />
+              </div>
+            </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         <item.icon className={`w-3 h-3 ${budgetTier === 'premium' ? 'text-accent' : 'text-muted-foreground'}`} />
