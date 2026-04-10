@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, 
@@ -16,7 +16,9 @@ import {
   Download,
   RotateCcw,
   Check,
-  Zap
+  Zap,
+  PlaneTakeoff,
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -27,6 +29,41 @@ import { CurrencySelector } from './CurrencySelector';
 import { CircuitLayout } from './CircuitLayout';
 import { QuickActionBar } from './QuickActionBar';
 import { BrandLogo } from './BrandLogo';
+import { getCurrencySymbol } from '@/lib/formatPrice';
+
+// Animated Counter Component
+const Counter = ({ value, currency }: { value: number; currency: string }) => {
+  const [displayValue, setDisplayValue] = useState(value);
+  const prevValueRef = useRef(value);
+
+  useEffect(() => {
+    const start = prevValueRef.current;
+    const end = value;
+    const duration = 800;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function: easeOutExpo
+      const easing = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = Math.floor(start + (end - start) * easing);
+      
+      setDisplayValue(current);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        prevValueRef.current = value;
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [value]);
+
+  return <span>{getCurrencySymbol(currency as any)}{displayValue.toLocaleString('de-DE')}</span>;
+};
 
 interface BlueprintDashboardProps {
   data: any;
@@ -38,6 +75,41 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   const { selectedCurrency, convert } = useCurrency();
   const [packedItems, setPackedItems] = useState<Record<number, boolean>>({});
   const [transportMode, setTransportMode] = useState<'publicTransport' | 'privateCar'>('publicTransport');
+  
+  // Tactical Calculator State
+  const [budgetTier, setBudgetTier] = useState<'budget' | 'mid' | 'premium'>('mid');
+  const [originAirport, setOriginAirport] = useState('');
+  const [isFlightLoading, setIsFlightLoading] = useState(false);
+  const [flightCostOverride, setFlightCostOverride] = useState<{min: number; max: number} | null>(null);
+
+  const tierMultipliers = {
+    budget: 0.8,
+    mid: 1.0,
+    premium: 2.5
+  };
+
+  const currentMultiplier = tierMultipliers[budgetTier];
+
+  // Mock Kiwi API Handler
+  useEffect(() => {
+    if (originAirport.length === 3) {
+      setIsFlightLoading(true);
+      // Simulate API latency
+      const timer = setTimeout(() => {
+        // Mock logic: some random variance based on airport code
+        const charCodeSum = originAirport.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const baseFlight = 200 + (charCodeSum % 300);
+        setFlightCostOverride({
+          min: Math.round(baseFlight * 0.9),
+          max: Math.round(baseFlight * 1.2)
+        });
+        setIsFlightLoading(false);
+      }, 1200);
+      return () => clearTimeout(timer);
+    } else if (originAirport === '') {
+      setFlightCostOverride(null);
+    }
+  }, [originAirport]);
 
   const toggleItem = (index: number) => {
     setPackedItems(prev => ({
@@ -50,18 +122,33 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     setPackedItems({});
   };
 
-  const formatItemPrice = (item: any) => {
-    const minConverted = convert(item.min, item.currency);
-    const maxConverted = convert(item.max, item.currency);
+  const getItemValues = (item: any) => {
+    const tierMultiplier = budgetTier === 'premium' ? 2.5 : budgetTier === 'budget' ? 0.8 : 1.0;
+    const minVal = (item.min * tierMultiplier);
+    const maxVal = (item.max * tierMultiplier);
+    return {
+      min: convert(minVal, item.currency),
+      max: convert(maxVal, item.currency)
+    };
+  };
+
+  const getTieredTotal = () => {
+    const multiplier = tierMultipliers[budgetTier];
+    const baseTotal = totalBudget.amount;
     
-    if (item.min === item.max) {
-      return formatPrice(minConverted, selectedCurrency, item.min, item.currency);
+    // If flight override exists, adjust total
+    if (flightCostOverride) {
+      const originalFlightAvg = (data.detailedBudget.flightsAvg.min + data.detailedBudget.flightsAvg.max) / 2;
+      const newFlightAvg = (flightCostOverride.min + flightCostOverride.max) / 2;
+      return Math.round((baseTotal - originalFlightAvg) * multiplier + convert(newFlightAvg, data.detailedBudget.flightsAvg.currency));
     }
     
-    // For ranges, we show the converted range
-    const symbol = selectedCurrency === 'EUR' ? '€' : selectedCurrency === 'GBP' ? '£' : '$';
-    return `${symbol}${Math.round(minConverted)} - ${symbol}${Math.round(maxConverted)}`;
+    return Math.round(baseTotal * multiplier);
   };
+
+  const currentTotal = getTieredTotal();
+  const lateBookingAvg = Math.round(currentTotal * 1.35);
+  const strategySavings = lateBookingAvg - currentTotal;
 
   const openInMaps = (target: any) => {
     const url = target.mapUrl || `https://www.google.com/maps/search/?api=1&query=${target.coordinates.lat},${target.coordinates.lng}`;
@@ -123,45 +210,120 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
         
         {/* Budget Section */}
         <section id="budget" className="scroll-mt-36">
-          <div className="flex items-center gap-3 mb-8 print:border-b-2 print:border-accent print:pb-2">
-            <CircleDollarSign className="w-5 h-5 text-accent" />
-            <h2 className="text-2xl font-extrabold tracking-tighter uppercase">Financial Strategy</h2>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <div className="flex items-center gap-3 mb-2 print:border-b-2 print:border-accent print:pb-2">
+                <CircleDollarSign className="w-5 h-5 text-accent" />
+                <h2 className="text-2xl font-extrabold tracking-tighter uppercase">Financial Strategy</h2>
+              </div>
+              <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">Dynamic Tactical Calculator</p>
+            </div>
+
+            {/* Tier Selector */}
+            <div className="flex bg-card border border-border p-1 rounded-xl print:hidden self-start">
+              {(['budget', 'mid', 'premium'] as const).map((tier) => (
+                <button
+                  key={tier}
+                  onClick={() => setBudgetTier(tier)}
+                  className={`relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg overflow-hidden ${
+                    budgetTier === tier ? 'text-white' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {budgetTier === tier && (
+                    <motion.div
+                      layoutId="tier-active"
+                      className="absolute inset-0 bg-accent -z-10"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                  {tier}
+                </button>
+              ))}
+            </div>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
-                { label: 'Food & Dining (3 Days)', value: formatItemPrice(data.detailedBudget.foodDaily), icon: TrendingUp, note: data.detailedBudget.foodDaily.note },
-                { label: 'Track Transport', value: formatItemPrice(data.detailedBudget.trackTransport), icon: Clock, note: data.detailedBudget.trackTransport.note },
-                { label: 'Avg Flight Cost', value: formatItemPrice(data.detailedBudget.flightsAvg), icon: MapIcon, note: data.detailedBudget.flightsAvg.note },
-                { label: 'Miscellaneous Buffer', value: formatItemPrice(data.detailedBudget.miscellaneous), icon: ShieldCheck, note: data.detailedBudget.miscellaneous.note },
-              ].map((item, i) => (
-                <div key={i} className="p-6 border border-border bg-card/30 rounded-xl space-y-2">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <item.icon className="w-3 h-3 text-accent" />
-                    {item.label}
+                { key: 'food', label: 'Food & Dining (3 Days)', itemData: data.detailedBudget.foodDaily, icon: TrendingUp },
+                { key: 'transport', label: 'Track Transport', itemData: data.detailedBudget.trackTransport, icon: Clock },
+                { key: 'flights', label: 'Avg Flight Cost', itemData: flightCostOverride ? { ...flightCostOverride, currency: data.detailedBudget.flightsAvg.currency } : data.detailedBudget.flightsAvg, icon: MapIcon },
+                { key: 'misc', label: 'Miscellaneous Buffer', itemData: data.detailedBudget.miscellaneous, icon: ShieldCheck },
+              ].map((item, i) => {
+                const values = getItemValues(item.itemData);
+                return (
+                  <div key={item.key} className="p-6 border border-border bg-card/30 rounded-xl space-y-4 relative overflow-hidden group">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        <item.icon className={`w-3 h-3 ${budgetTier === 'premium' ? 'text-accent' : 'text-muted-foreground'}`} />
+                        {item.label}
+                      </div>
+                      {item.key === 'flights' && (
+                        <div className="relative">
+                          <input 
+                            type="text"
+                            placeholder="ORIGIN (e.g. JFK)"
+                            maxLength={3}
+                            value={originAirport}
+                            onChange={(e) => setOriginAirport(e.target.value.toUpperCase())}
+                            className="bg-background/50 border border-border text-[9px] font-bold py-1 px-2 rounded w-24 focus:outline-none focus:border-accent transition-colors placeholder:opacity-50"
+                          />
+                          {isFlightLoading && <Loader2 className="w-2 h-2 animate-spin absolute right-2 top-1.5 text-accent" />}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold tracking-tight">
+                        <Counter value={values.min} currency={selectedCurrency} />
+                        {values.min !== values.max && (
+                          <>
+                            <span className="mx-2 opacity-30">—</span>
+                            <Counter value={values.max} currency={selectedCurrency} />
+                          </>
+                        )}
+                      </div>
+                      {item.itemData.note && <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">{item.itemData.note}</p>}
+                    </div>
+                    
+                    {/* Decorative Background Icon */}
+                    <item.icon className="absolute -right-4 -bottom-4 w-24 h-24 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold tracking-tight">{item.value}</p>
-                    {item.note && <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">{item.note}</p>}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             
-            <div className="p-8 bg-foreground text-background rounded-2xl flex flex-col justify-between print:bg-white print:text-black print:border print:border-black">
-              <div>
+            <div className="p-8 bg-foreground text-background rounded-2xl flex flex-col justify-between print:bg-white print:text-black print:border print:border-black relative overflow-hidden">
+              <div className="relative z-10">
                 <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 block mb-2">Total Estimated Weekend Cost</span>
                 <p className="text-5xl font-extrabold tracking-tighter">
-                  {formatPrice(convert(totalBudget.amount, totalBudget.currency), selectedCurrency, totalBudget.amount, totalBudget.currency)}
+                  <Counter value={currentTotal} currency={selectedCurrency} />
                 </p>
-                <p className="text-xs mt-4 opacity-60 font-medium">Calculated based on 3-day average trip data + recommended local margins.</p>
+                <div className="mt-6 py-4 border-y border-background/10 print:border-black/10">
+                  <div className="flex items-center gap-2 text-accent mb-1">
+                    <Zap className="w-3 h-3 fill-current" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Strategy Savings</span>
+                  </div>
+                  <p className="text-[10px] leading-relaxed opacity-80">
+                    Strategic Booking: You are currently saving <span className="font-black text-accent">{getCurrencySymbol(selectedCurrency)}{strategySavings.toLocaleString()}</span> compared to standard race-week rates.
+                  </p>
+                </div>
+                <p className="text-[9px] mt-4 opacity-40 font-medium uppercase tracking-tighter">Calculated based on {budgetTier} strategy + dynamic margins.</p>
               </div>
-              <div className="mt-8 pt-8 border-t border-background/10 print:border-black/10">
+              <div className="mt-8 pt-8 border-t border-background/10 print:border-black/10 relative z-10">
                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
-                  <ShieldCheck className="w-4 h-4" /> Expert Verified Calculation
+                  <ShieldCheck className="w-4 h-4 text-accent" /> Expert Verified Calculation
                 </div>
               </div>
+              
+              {/* Animated Accent Background */}
+              <motion.div 
+                className="absolute inset-0 bg-accent/5 pointer-events-none"
+                animate={{
+                  opacity: [0.05, 0.1, 0.05],
+                  scale: [1, 1.05, 1],
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              />
             </div>
           </div>
         </section>

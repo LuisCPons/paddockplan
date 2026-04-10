@@ -34,10 +34,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
     const fetchRates = async () => {
       try {
-        const res = await fetch('https://api.exchangerate-api.com/v4/latest/EUR');
+        const res = await fetch('https://api.frankfurter.app/latest?from=EUR');
         const data = await res.json();
         if (data.rates) {
-          setExchangeRates(data.rates);
+          // Normalize rates: ensure they include base EUR
+          setExchangeRates({ ...data.rates, EUR: 1 });
         }
       } catch (error) {
         console.warn('Currency API failed, using fallback rates:', error);
