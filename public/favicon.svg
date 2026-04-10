@@ -1,7 +1,0 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="10" width="6" height="6" transform="skewX(-20)" fill="#CC0000" />
-  <rect x="8" y="10" width="6" height="6" transform="skewX(-20)" fill="#CC0000" />
-  <rect x="4" y="4" width="7" height="6" transform="skewX(-20)" fill="#CC0000" />
-  <path d="M16 2 L26 2 C30 2 32 5 32 10 C32 15 30 18 26 18 L19 18 L19 28" stroke="white" stroke-width="4" stroke-linecap="butt" fill="none" />
-  <path d="M19 10 L25 10" stroke="white" stroke-width="4" stroke-linecap="butt" fill="none" />
-</svg>
