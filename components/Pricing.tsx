@@ -18,23 +18,23 @@ const TIERS = [
       'General Ticket Advice',
       '3 Surface-level Tips'
     ],
-    cta: 'Get Started',
+    cta: 'ACCESS TACTICAL HUB',
     popular: false
   },
   {
     key: 'premium',
-    name: 'Full Weekend Blueprint',
+    name: 'Full Tactical Hub',
     price: { amount: 19, currency: 'EUR' },
     period: 'one-time',
-    description: 'The definitive digital blueprint for your entire trip.',
+    description: 'The definitive race control platform for your entire trip.',
     features: [
-      'Detailed 12-page Digital PDF',
+      'Professional Dossier (Offline Export)',
       'Precise Expense Breakdown',
       'Stay Area Heatmaps',
       'Transport Timelines',
       '2026 Season Checklist'
     ],
-    cta: 'Acquire Full Plan',
+    cta: 'ACCESS TACTICAL HUB',
     popular: true
   }
 ];
@@ -63,7 +63,7 @@ export function Pricing() {
           >
             <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">Pricing</span>
             <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6">Execution is Everything.</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto font-light">Choose the depth of planning that fits your journey. Simple data or a professional blueprint.</p>
+            <p className="text-muted-foreground max-w-xl mx-auto font-light">Choose the depth of planning that fits your journey. Simple data or a professional tactical hub.</p>
           </motion.div>
 
           <motion.div 

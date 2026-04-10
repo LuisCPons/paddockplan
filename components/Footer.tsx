@@ -12,7 +12,7 @@ export function Footer() {
               <BrandLogo showTagline={true} size="sm" className="items-start" />
             </Link>
             <p className="text-sm font-light text-foreground/60 leading-relaxed mb-8 max-w-xs">
-              The premier independent digital travel planner for the global motorsport community.
+              The premier independent Race Control Platform for the global motorsport community.
             </p>
             <div className="flex gap-4">
               <a href="#" className="w-10 h-10 border border-zinc-200 flex items-center justify-center text-foreground hover:bg-foreground hover:text-background transition-colors"><MessageCircle className="w-4 h-4" /></a>
@@ -26,7 +26,7 @@ export function Footer() {
             <ul className="space-y-4 text-sm font-light text-foreground/60">
               <li><Link href="#guides" className="hover:text-accent transition-colors">Race Guides</Link></li>
               <li><Link href="#pricing" className="hover:text-accent transition-colors">Services</Link></li>
-              <li><Link href="#plan" className="hover:text-accent transition-colors">Trip Calculator</Link></li>
+              <li><Link href="#plan" className="hover:text-accent transition-colors">Tactical Hub</Link></li>
               <li><Link href="#" className="hover:text-accent transition-colors">Track Maps</Link></li>
             </ul>
           </div>

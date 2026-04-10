@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "PaddockPlan | The Definitive Grand Prix Blueprint",
+  title: "PaddockPlan | The Definitive Race Control Platform",
   description: "Get expert-backed logistics, stay heatmaps, and track-side secrets for the 2026 season.",
   };
 

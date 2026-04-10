@@ -324,7 +324,7 @@ export function QuickPlanner() {
 
                   <div className="pt-6 border-t border-border">
                     <p className="text-[10px] text-muted-foreground italic leading-relaxed font-light">
-                      The "Full Weekend Plan" provides the precise logistics needed to execute this {results.gpName} trip without the guesswork.
+                      The "Full Tactical Hub" provides the precise logistics needed to execute this {results.gpName} trip without the guesswork.
                     </p>
                   </div>
                 </div>
@@ -359,7 +359,7 @@ export function QuickPlanner() {
                 className="mt-4 w-full relative"
               >
                 <div className="text-center mb-8">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Premium Blueprint Preview</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Premium Tactical Hub Preview</span>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-30 blur-[3px] pointer-events-none select-none">
@@ -423,7 +423,7 @@ export function QuickPlanner() {
                       onClick={() => setIsModalOpen(true)}
                       className="group bg-[#E10600] text-white px-8 py-4 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-3 shadow-[0_0_15px_rgba(225,6,0,0.3)]"
                     >
-                      Unlock 12-Page Blueprint <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                      ACCESS TACTICAL HUB <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </motion.button>
                   </div>
                 </div>

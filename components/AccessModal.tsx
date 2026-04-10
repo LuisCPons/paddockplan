@@ -85,9 +85,9 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
           >
             <div className="mb-8">
               <span className="text-[10px] font-bold uppercase tracking-widest text-accent mb-2 block">Premium Access</span>
-              <h2 className="text-3xl font-extrabold tracking-tighter mb-4 text-foreground">Get Your Blueprint</h2>
+              <h2 className="text-3xl font-extrabold tracking-tighter mb-4 text-foreground">Access Your Tactical Hub</h2>
               <p className="text-foreground/60 text-sm font-light leading-relaxed max-w-sm">
-                Secure your 12-page editorial guide and logistics blueprint for the {defaultGP || 'race'} weekend.
+                Deploy your Interactive Tactical Hub and mission-critical Professional Dossier for the {defaultGP || 'race'} weekend.
               </p>
             </div>
 
@@ -122,7 +122,7 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
               <div className="py-4 space-y-3">
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-accent" />
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-foreground/70">Instant PDF & Digital Access</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-foreground/70">Interactive Hub & Professional Dossier</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="w-4 h-4 text-accent" />
@@ -171,7 +171,7 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
             </div>
             <h2 className="text-3xl font-extrabold tracking-tighter mb-4">Complete Your Order</h2>
             <p className="text-foreground/60 mb-10 max-w-sm mx-auto font-light text-sm leading-relaxed">
-              Your custom {defaultGP} blueprint is ready. Click below to proceed to our secure checkout partner.
+              Your custom {defaultGP} Race Control Platform is ready. Click below to proceed to our secure checkout partner.
             </p>
             <button 
               onClick={handlePayment}
@@ -211,19 +211,19 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
               {isUnverified ? <Clock className="w-10 h-10 text-accent" /> : <Download className="w-10 h-10 text-accent" />}
             </motion.div>
             <h2 className="text-3xl font-extrabold tracking-tighter mb-4">
-              {isUnverified ? 'Join the Waitlist' : 'Your Blueprint is Ready'}
+              {isUnverified ? 'Join the Waitlist' : 'Tactical Hub Ready'}
             </h2>
             <p className="text-foreground/60 mb-10 max-w-xs mx-auto font-light text-sm leading-relaxed">
               {isUnverified 
-                ? `${defaultGP} blueprints are currently being verified for 2026. Join the waitlist to be notified first.`
-                : 'Your custom 12-page logistics guide has been generated and is ready for download.'
+                ? `${defaultGP} hubs are currently being verified for 2026. Join the waitlist to be notified first.`
+                : 'Your custom Professional Dossier has been generated and is ready for download within the Hub.'
               }
             </p>
             <div className="w-full space-y-4">
               <button 
                 className="w-full bg-foreground text-background font-bold text-xs uppercase tracking-widest py-5 hover:bg-black transition-colors flex justify-center items-center gap-3"
               >
-                {isUnverified ? 'Notify Me When Ready' : 'Download Digital Blueprint'} {isUnverified ? <ArrowRight className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+                {isUnverified ? 'Notify Me When Ready' : 'ACCESS TACTICAL HUB'} {isUnverified ? <ArrowRight className="w-4 h-4" /> : <Download className="w-4 h-4" />}
               </button>
               <button 
                 onClick={handleClose}

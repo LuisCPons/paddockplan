@@ -16,13 +16,13 @@ const STEPS = [
   },
   {
     num: '03',
-    title: 'Receive the Blueprint',
-    description: "Generate a mission-critical 12-page PDF Dossier containing verified logistical blueprints and precision timing data."
+    title: 'INITIALIZE THE HUB',
+    description: "Instantly deploy your interactive dashboard. Access live telemetry sync, tactical heatmaps, and a mission-critical 12-page PDF Dossier for offline redundancy."
   },
   {
     num: '04',
-    title: 'Master the Weekend',
-    description: "Deploy to the Paddock with surgical precision. Navigate logistics and track hospitality like a pro-team strategist."
+    title: 'LEAD THE WEEKEND',
+    description: "Command the Paddock with surgical precision. Use your mobile-synced hub to navigate logistics and track hospitality like a pro-team strategist."
   }
 ];
 

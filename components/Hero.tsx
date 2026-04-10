@@ -50,14 +50,14 @@ export function Hero() {
               className="text-[2.2rem] md:text-[4rem] font-bold tracking-tighter mb-8 leading-[1.05] text-foreground font-manrope"
             >
               The Definitive <br className="hidden md:block" />
-              Digital <span className="italic font-light text-accent">Blueprint</span> for Grand Prix Fans.
+              Digital <span className="italic font-light text-accent">Race Control Platform</span> for Grand Prix Fans.
             </motion.h1>
 
             <motion.p 
               variants={itemVariants}
               className="text-lg md:text-xl text-muted-foreground mb-10 max-w-xl font-light leading-relaxed font-inter"
             >
-              Move from scattered tabs to a professional 12-page weekend plan in minutes. Independent, expert-backed, and mobile-ready.
+              Move from scattered tabs to an Interactive Tactical Hub in minutes. Independent, expert-backed, and mobile-ready.
             </motion.p>
 
             <motion.div 
@@ -65,7 +65,7 @@ export function Hero() {
               className="flex flex-col sm:flex-row gap-4 md:gap-6 items-stretch sm:items-start mb-12"
             >
               <Link href="#plan" className="flex items-center justify-center gap-3 bg-accent text-white px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_30px_rgba(225,6,0,0.3)]">
-                Generate Blueprint
+                ACCESS TACTICAL HUB
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="#guides" className="flex items-center justify-center gap-3 bg-transparent border border-border text-foreground px-8 py-5 font-bold text-xs uppercase tracking-[0.2em] hover:border-accent transition-all duration-300">

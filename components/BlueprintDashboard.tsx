@@ -85,7 +85,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   <ArrowLeft className="w-3 h-3" /> Back to Planner
                 </Link>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-accent block">Premium Blueprint</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-accent block">Tactical Hub</span>
                   <div className="w-1 h-1 rounded-full bg-border print:hidden" />
                   <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block">2026 Edition</span>
                 </div>
@@ -98,7 +98,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 onClick={() => window.print()}
                 className="flex items-center gap-2 bg-foreground text-background px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-accent hover:text-white transition-all"
               >
-                <Printer className="w-4 h-4" /> Save as PDF
+                <Printer className="w-4 h-4" /> Offline Dossier Export
               </button>
             </div>
           </div>
@@ -408,9 +408,9 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
         </section>
 
         <footer className="pt-24 pb-12 text-center print:pt-12">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mb-4">Official 2026 PaddockPlan Blueprint</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mb-4">Official 2026 Race Control Platform</p>
           <p className="text-[9px] text-muted-foreground/40 max-w-lg mx-auto leading-relaxed">
-            Data verified by local travel experts for the {data.location} region. This document is a digital product intended for informational purposes only. PaddockPlan is an independent platform and not affiliated with the FIA or official race organizers.
+            Data verified by local travel experts for the {data.location} region. This platform is a digital product intended for informational purposes only. PaddockPlan is an independent platform and not affiliated with the FIA or official race organizers.
           </p>
         </footer>
       </main>

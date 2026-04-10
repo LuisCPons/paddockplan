@@ -7,7 +7,7 @@ import { Plus } from 'lucide-react';
 const FAQS = [
   {
     q: 'Does PaddockPlan sell tickets?',
-    a: 'No. PaddockPlan is a 100% independent planning tool. we provide the data you need to buy the right tickets and book the best hotels yourself, avoiding common rookie mistakes.'
+    a: 'No. PaddockPlan is a 100% independent Race Control Platform. we provide the data you need to buy the right tickets and book the best hotels yourself, avoiding common rookie mistakes.'
   },
   {
     q: 'Can you help with flights and accommodation?',
@@ -15,7 +15,7 @@ const FAQS = [
   },
   {
     q: 'Which races do you cover?',
-    a: 'We currently maintain expert planning data for the premier circuits featured in our interactive planner, ensuring every blueprint is verified by local logistics data.'
+    a: 'We currently maintain expert planning data for the premier circuits featured in our interactive planner, ensuring every Tactical Hub is verified by local logistics data.'
   },
   {
     q: 'Are you affiliated with the official racing series?',
