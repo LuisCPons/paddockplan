@@ -34,7 +34,7 @@ export function HowItWorks() {
   });
 
   const scaleX = useSpring(scrollYProgress, {
-    stagger: 0.1,
+    stiffness: 100,
     damping: 30,
     restDelta: 0.001
   });
