@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "PaddockPlan | The Definitive Grand Prix Blueprint",
   description: "Get expert-backed logistics, stay heatmaps, and track-side secrets for the 2026 season.",
   icons: {
-    icon: '/favicon.svg',
+    icon: '/favicon-mark.png',
   },
 };
 
