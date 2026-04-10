@@ -123,13 +123,13 @@ function GuideCard({ guide }: { guide: any }) {
         />
 
         {/* Top-Left Tag - Glass Control Overlay Reference Design */}
-        <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg">
+        <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-black/40 md:bg-white/10 md:backdrop-blur-md border border-white/20 rounded-lg md:shadow-lg">
           <TagIcon className="w-3.5 h-3.5 text-white" />
           <span className="text-[9px] font-black uppercase tracking-widest text-white">{guide.tag}</span>
         </div>
 
         {/* Top-Right Track Silhouette */}
-        <div className="absolute top-4 right-4 w-16 h-16 opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-lg">
+        <div className="absolute top-4 right-4 w-16 h-16 opacity-80 group-hover:opacity-100 transition-opacity md:drop-shadow-lg">
            <svg viewBox={guide.viewBox} className="w-full h-full">
              <path 
                d={guide.path} 

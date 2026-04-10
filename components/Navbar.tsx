@@ -13,7 +13,7 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-border transition-all">
+      <nav className="sticky top-0 z-50 w-full bg-background md:bg-background/80 md:backdrop-blur-xl border-b border-border transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20 md:h-24">
             <Link href="/" className="hover:opacity-90 transition-opacity">

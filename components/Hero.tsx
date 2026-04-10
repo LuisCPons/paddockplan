@@ -164,7 +164,8 @@ function CircuitSchematicEngine() {
       <motion.div
         key={index}
         initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: false, margin: "-100px" }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="w-full h-full flex flex-col items-center justify-center gap-14"
@@ -176,7 +177,7 @@ function CircuitSchematicEngine() {
           <svg 
             key={currentCircuit.name}
             viewBox={currentCircuit.viewBox} 
-            className="w-full h-full drop-shadow-[0_0_40px_rgba(225,6,0,0.2)]"
+            className="w-full h-full md:drop-shadow-[0_0_40px_rgba(225,6,0,0.2)]"
           >
             {/* Path A: Static Background */}
             <motion.path
@@ -212,6 +213,7 @@ function CircuitSchematicEngine() {
                 duration: currentCircuit.duration, 
                 ease: "linear"
               }}
+              style={{ willChange: "transform, opacity" }}
             />
             
             {/* Telemetry Pointer (Red Dot) */}
@@ -229,6 +231,7 @@ function CircuitSchematicEngine() {
               }}
               style={{
                 offsetPath: `path("${currentCircuit.path}")`,
+                willChange: "transform, opacity"
               }}
             />
           </svg>
