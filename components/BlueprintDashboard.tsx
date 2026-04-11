@@ -92,7 +92,6 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
    // Comparison & Hub State
    const [selectedHub, setSelectedHub] = useState<'LIN' | 'MXP' | 'BGY'>('LIN');
-   const [packedItems, setPackedItems] = useState<Record<number, boolean>>({});
    const [isScanning, setIsScanning] = useState(false);
    const [isCalculating, setIsCalculating] = useState(false);
    const [flightCostOverride, setFlightCostOverride] = useState<{min: number; max: number} | null>(null);
@@ -231,13 +230,14 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     }, 0);
   };
 
-  const currentTotal = getTieredTotal();
+  const currentTotal = calculatePathTotal(budgetTier);
   const lateBookingAvg = Math.round(currentTotal * 1.35);
   const strategySavings = lateBookingAvg - currentTotal;
 
   const openInMaps = (target: any) => {
     const url = target.mapUrl || `https://www.google.com/maps/search/?api=1&query=${target.coordinates.lat},${target.coordinates.lng}`;
     window.open(url, '_blank');
+  };
   const currentLogistics = data.logistics[transportMode];
 
   return (
@@ -617,5 +617,5 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
       `}</style>
     </div>
   );
-
+}
 
