@@ -111,8 +111,6 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
      budget: false, mid: false, premium: false
    });
 
-   const [packedItems, setPackedItems] = useState<Record<number, boolean>>({});
-
   useEffect(() => {
     setMounted(true);
   }, []);
