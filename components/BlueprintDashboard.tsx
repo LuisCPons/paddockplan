@@ -195,12 +195,14 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
    const getBookingUrl = (type: string, tier: string, origin: string) => {
      const personnel = missionPersonnel;
      const hub = tier === 'premium' ? 'LIN' : tier === 'budget' ? 'BGY' : 'MXP';
+     const airport = hub;
      
-     if (type === 'tickets') return `https://www.google.com/search?q=official-f1-tickets.com+monza+2026`;
-     if (type === 'stay') return `https://www.booking.com/search.html?ss=Milan&group_adults=${personnel}&checkin=2026-09-03&checkout=2026-09-07`;
+     if (type === 'tickets') return `https://tickets.formula1.com/en/f1-43257-italy`;
+     if (type === 'stay') return `https://www.booking.com/search.html?ss=Milan&group_adults=${personnel}&checkin=2026-09-03&checkout=2026-09-07&selected_currency=EUR`;
      if (type === 'transport') {
-       if (inboundMode === 'plane') return `https://www.kiwi.com/en/search/results/${origin || 'anywhere'}/${hub}/2026-09-03/2026-09-07?adults=${personnel}`;
-       return `https://www.google.com/maps/dir/${origin || 'My+Location'}/Autodromo+Nazionale+Monza`;
+       if (inboundMode === 'car') return `https://www.viamichelin.com/web/Routes?departure=${encodeURIComponent(origin || 'Madrid')}&arrival=Monza&index=0&vehicle=0&type=0&fuelCost=1.6&allowance=0&corridor=`;
+       if (inboundMode === 'plane') return `https://www.kiwi.com/en/search/results/${encodeURIComponent(origin || 'anywhere')}/${airport}/2026-09-03/2026-09-07?adults=${personnel}`;
+       return `https://www.google.com/search?q=train+tickets+from+${encodeURIComponent(origin)}+to+Milan+September+2026`;
      }
      return '#';
    };
@@ -509,12 +511,12 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                    {[
-                     { id: 'budget', label: 'Budget Alternative', tier: 'budget', desc: 'GA (€150) + Camping entry.' },
-                     { id: 'recommended', label: 'Recommended Path', tier: budgetTier, desc: 'Grandstand (€550) + Strategic Stay.' },
-                     { id: 'performance', label: 'Performance Upgrade', tier: 'premium', desc: 'VIP (€1,200) + Elite Proximity.' }
+                     { id: 'budget', label: budgetTier === 'budget' ? 'SELECTED STRATEGY' : 'BUDGET ALTERNATIVE', tier: 'budget', desc: 'GA (€150) + Camping entry.' },
+                     { id: 'mid', label: budgetTier === 'mid' ? 'SELECTED STRATEGY' : 'RECOMMENDED PATH', tier: 'mid', desc: 'Grandstand (€550) + Strategic Stay.' },
+                     { id: 'premium', label: budgetTier === 'premium' ? 'SELECTED STRATEGY' : 'PERFORMANCE UPGRADE', tier: 'premium', desc: 'VIP (€1,200) + Elite Proximity.' }
                    ].map((path) => (
-                     <div key={path.id} className={`p-8 border bg-[#050505] rounded-xl space-y-8 relative overflow-hidden group ${path.id === 'recommended' ? 'border-[#E10600]/80 shadow-[0_0_30px_rgba(225,6,0,0.1)]' : 'border-[#1A1A1A]'}`}>
-                        {path.id === 'recommended' && <div className="absolute top-0 right-0 px-3 py-1 bg-[#E10600] text-white text-[8px] font-black uppercase tracking-widest">Recommended Path</div>}
+                     <div key={path.id} className={`p-8 border bg-[#050505] rounded-xl space-y-8 relative overflow-hidden group ${path.label === 'SELECTED STRATEGY' ? 'border-[#E10600]/80 shadow-[0_0_30px_rgba(225,6,0,0.1)]' : 'border-[#1A1A1A]'}`}>
+                        {path.label === 'SELECTED STRATEGY' && <div className="absolute top-0 right-0 px-3 py-1 bg-[#E10600] text-white text-[8px] font-black uppercase tracking-widest">Selected Strategy</div>}
                         
                         <div className="space-y-2">
                           <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600]">{path.label}</span>
@@ -533,9 +535,9 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                            </div>
                         </div>
 
-                        {/* Booking Matrix v3.0 */}
+                        {/* Booking Matrix v3.1 */}
                         <div className="space-y-6">
-                          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">The Booking Matrix</span>
+                          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">Execution matrix</span>
                           {(['tickets', 'stay', 'transport'] as const).map(item => (
                             <div key={item} className="space-y-3">
                               <div className="flex items-center justify-between gap-4">
@@ -543,8 +545,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                                   onClick={() => window.open(getBookingUrl(item, path.tier, originCity), '_blank')}
                                   className="flex-1 py-3 bg-[#1A1A1A] border border-white/5 rounded text-[9px] font-black uppercase tracking-widest text-white hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2"
                                 >
-                                  {item === 'tickets' ? '🎫' : item === 'stay' ? '🏨' : '✈️'}
-                                  Book {item}
+                                  {item === 'tickets' ? 'Book GP Tickets' : item === 'stay' ? 'Book Stay' : (inboundMode === 'car' ? 'CALCULATE FUEL & TOLLS' : 'Book Transport')}
                                 </button>
                                 <button 
                                   onClick={() => toggleBooked(path.tier, item)}
@@ -625,9 +626,9 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                    {/* Integrated Timeline */}
                    <div className="lg:col-span-8 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-8 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-4 font-mono font-black text-sm text-[#E10600] animate-pulse">BATTLE TIMELINE</div>
+                      <div className="absolute top-0 right-0 p-4 font-mono font-black text-sm text-[#E10600] animate-pulse uppercase tracking-widest">Live Battle Feed</div>
                       <div className="space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Integrated Telemetry</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Real-time Telemetry</span>
                         <h3 className="text-2xl font-black uppercase italic tracking-tighter">Mission Schedule & Weather</h3>
                       </div>
                       
@@ -644,12 +645,12 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                                 <div className="h-4 w-px bg-white/10" />
                                 <div className="text-[11px] font-black uppercase tracking-widest text-white group-hover:text-[#E10600] transition-colors">{ev.event}</div>
                               </div>
-                              <div className="flex items-center gap-6 text-[10px] font-black uppercase text-white/40">
-                                <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-6 text-[10px] font-black uppercase">
+                                <div className="flex items-center gap-2 text-white/60">
                                    {ev.icon}
                                    <span className="tabular-nums">{ev.temp}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 text-[#E10600]">
                                    <CloudRain className="w-3 h-3" />
                                    <span className="tabular-nums">{ev.rain} RAIN</span>
                                 </div>
@@ -666,29 +667,24 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                           <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600]">Tactical Intel Notes</span>
                           <h3 className="text-xl font-black uppercase italic tracking-tighter">Monza 2026 Navigation</h3>
                         </div>
-                        <div className="space-y-4">
-                           <div className="p-4 bg-white/5 border border-[#1A1A1A] rounded space-y-2 relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 w-1 h-full bg-[#E10600] opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <span className="text-[8px] font-black uppercase text-white/30">Transit Secret</span>
-                              <p className="text-[10px] font-bold leading-relaxed text-white italic">"Trenord Digital: Buy the 'Monza Special' via app; station kiosks have 40-min lines."</p>
+                        <div className="space-y-6">
+                           <div className="p-5 bg-white/5 border border-[#1A1A1A] rounded space-y-3 relative overflow-hidden group">
+                              <div className="absolute top-0 left-0 w-1 h-full bg-[#E10600]" />
+                              <span className="text-[8px] font-black uppercase text-[#E10600] tracking-widest">Logistics Priority</span>
+                              <p className="text-[11px] font-bold leading-relaxed text-white italic">"Trenord Digital: Buy the 'Monza Special' via app; station kiosks have 40-min lines."</p>
                            </div>
-                           <div className="p-4 bg-white/5 border border-[#1A1A1A] rounded space-y-2 relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 w-1 h-full bg-[#E10600] opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <span className="text-[8px] font-black uppercase text-white/30">Optimal Entry</span>
-                              <p className="text-[10px] font-bold leading-relaxed text-white italic">"Gate G (Vedano): Optimal for Grandstand 4. 15m walk from Black Shuttle drop-off."</p>
-                           </div>
-                           <div className="p-4 bg-[#E10600]/5 border border-[#E10600]/20 rounded space-y-2 relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 w-1 h-full bg-[#E10600]" />
-                              <span className="text-[8px] font-black uppercase text-[#E10600]">Security Alert</span>
-                              <p className="text-[10px] font-bold leading-relaxed text-[#E10600] italic">"Security Alert: Spare bottle caps required; security removes caps at gates."</p>
+                           <div className="p-5 bg-white/5 border border-[#1A1A1A] rounded space-y-3 relative overflow-hidden group">
+                              <div className="absolute top-0 left-0 w-1 h-full bg-white/20" />
+                              <span className="text-[8px] font-black uppercase text-white/40 tracking-widest">Security Protocol</span>
+                              <p className="text-[11px] font-bold leading-relaxed text-white italic">"Security Alert: Spare bottle caps required; security removes caps at gates."</p>
                            </div>
                         </div>
                       </div>
                       <button 
                         onClick={() => window.print()}
-                        className="w-full py-5 border-2 border-white text-white text-[10px] font-black uppercase tracking-[0.4em] rounded hover:bg-[#E10600] hover:border-[#E10600] transition-all"
+                        className="w-full py-6 bg-[#E10600] font-mono text-white text-[11px] font-black uppercase tracking-[0.4em] rounded hover:shadow-[0_0_30px_rgba(225,6,0,0.4)] transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(225,6,0,0.2)]"
                       >
-                        Export Offline Dossier
+                        <Printer className="w-4 h-4" /> Export Offline Dossier
                       </button>
                    </div>
 
