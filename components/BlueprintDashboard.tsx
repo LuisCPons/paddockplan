@@ -79,23 +79,39 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   const [packedItems, setPackedItems] = useState<Record<number, boolean>>({});
   const [transportMode, setTransportMode] = useState<'publicTransport' | 'privateCar'>('publicTransport');
   
-   // Stage Management
+   // 1. STAGE MANAGEMENT
    const [currentStage, setCurrentStage] = useState<1 | 2 | 3>(1);
    
-   // Tactical Briefing State (Stage 1)
-   const [guestCount, setGuestCount] = useState(1);
-   const [fromCity, setFromCity] = useState('Madrid');
+   // 2. TACTICAL INTAKE STATE (Stage 1)
+   const [missionPersonnel, setMissionPersonnel] = useState(1);
+   const [originCity, setOriginCity] = useState('');
    const [inboundMode, setInboundMode] = useState<'plane' | 'train' | 'car'>('plane');
-   const [stayType, setStayType] = useState<'hotel' | 'airbnb' | 'camping'>('hotel');
-   const [durationDays, setDurationDays] = useState<3 | 5>(3);
+   const [stayType, setStayType] = useState<'hotel' | 'airbnb' | 'camping' | 'glamping'>('hotel');
+   const [durationDays, setDurationDays] = useState<3 | 4>(3);
    const [budgetTier, setBudgetTier] = useState<'budget' | 'mid' | 'premium'>('mid');
 
-   // Comparison & Hub State
+   // 3. COMPARISON & HUB STATE (Stage 2/3)
    const [selectedHub, setSelectedHub] = useState<'LIN' | 'MXP' | 'BGY'>('LIN');
    const [isScanning, setIsScanning] = useState(false);
-   const [isCalculating, setIsCalculating] = useState(false);
    const [flightCostOverride, setFlightCostOverride] = useState<{min: number; max: number} | null>(null);
    const [mounted, setMounted] = useState(false);
+
+   // 4. AUDIT & BOOKING LOGIC (Stage 2)
+   const [bookedItems, setBookedItems] = useState<Record<string, Record<string, boolean>>>({
+     budget: { tickets: false, stay: false, transport: false },
+     mid: { tickets: false, stay: false, transport: false },
+     premium: { tickets: false, stay: false, transport: false }
+   });
+   const [actualCosts, setActualCosts] = useState<Record<string, Record<string, number>>>({
+     budget: { tickets: 0, stay: 0, transport: 0 },
+     mid: { tickets: 0, stay: 0, transport: 0 },
+     premium: { tickets: 0, stay: 0, transport: 0 }
+   });
+   const [engagedCards, setEngagedCards] = useState<Record<string, boolean>>({
+     budget: false, mid: false, premium: false
+   });
+
+   const [packedItems, setPackedItems] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     setMounted(true);
@@ -127,10 +143,10 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
   // Reactive Price Engine: Fetch whenever origin or hub changes
   useEffect(() => {
-    if (fromCity && selectedHub) {
+    if (originCity && selectedHub) {
       setIsScanning(true);
       const timer = setTimeout(() => {
-        const charCodeSum = (fromCity + selectedHub).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const charCodeSum = (originCity + selectedHub).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         const baseFlight = 200 + (charCodeSum % 300);
         setFlightCostOverride({
           min: Math.round(baseFlight * 0.9),
@@ -140,7 +156,23 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [fromCity, selectedHub]);
+  }, [originCity, selectedHub]);
+
+  const toggleBooked = (tier: string, item: string) => {
+    setBookedItems(prev => ({
+      ...prev,
+      [tier]: { ...prev[tier], [item]: !prev[tier][item] }
+    }));
+    setEngagedCards(prev => ({ ...prev, [tier]: true }));
+  };
+
+  const updateActualCost = (tier: string, item: string, value: string) => {
+    const cost = parseFloat(value) || 0;
+    setActualCosts(prev => ({
+      ...prev,
+      [tier]: { ...prev[tier], [item]: cost }
+    }));
+  };
 
   const toggleItem = (index: number) => {
     setPackedItems(prev => ({
@@ -156,13 +188,20 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   const getItemValues = (itemKey: string, overrideTier?: 'budget' | 'mid' | 'premium') => {
     const activeTier = overrideTier || budgetTier;
     const tierMultiplier = tierMultipliers[activeTier];
-    const durationMultiplier = durationDays === 5 ? 1.6 : 1.0;
+    const durationMultiplier = durationDays === 4 ? 1.3 : 1.0;
+    const marketBuffer = 1.10; // 10% Market Volatility Buffer
     
-    const distanceKm = fromCity.toLowerCase() === 'madrid' ? 1500 : 800;
+    const distanceKm = originCity.toLowerCase() === 'madrid' ? 1500 : 800;
 
     if (itemKey === 'food') {
-      const cost = 120 * tierMultiplier * guestCount * durationMultiplier;
-      return { min: convert(cost * 0.9, 'EUR'), max: convert(cost * 1.1, 'EUR') };
+      const cost = 120 * tierMultiplier * missionPersonnel * durationMultiplier;
+      return { min: convert(cost * 0.9 * marketBuffer, 'EUR'), max: convert(cost * 1.1 * marketBuffer, 'EUR') };
+    }
+
+    if (itemKey === 'tickets') {
+      const ticketPrices = { budget: 150, mid: 450, premium: 1200 }; // GA, Grandstand, VIP
+      const cost = ticketPrices[activeTier] * missionPersonnel;
+      return { min: convert(cost, 'EUR'), max: convert(cost, 'EUR') };
     }
 
     if (itemKey === 'inbound') {
@@ -178,32 +217,32 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
           baseMax = flightCostOverride.max;
         }
         return { 
-          min: convert(baseMin * tierMultiplier * guestCount, 'EUR'), 
-          max: convert(baseMax * tierMultiplier * guestCount, 'EUR') 
+          min: convert(baseMin * tierMultiplier * missionPersonnel * marketBuffer, 'EUR'), 
+          max: convert(baseMax * tierMultiplier * missionPersonnel * marketBuffer, 'EUR') 
         };
       }
       if (inboundMode === 'train') {
-        const cost = distanceKm * 0.15 * guestCount;
+        const cost = distanceKm * 0.15 * missionPersonnel * marketBuffer;
         return { min: convert(cost, 'EUR'), max: convert(cost, 'EUR') };
       }
       if (inboundMode === 'car') {
-        const cost = (distanceKm * 0.12) + 60;
+        const cost = ((distanceKm * 0.12) + 60) * marketBuffer;
         return { min: convert(cost, 'EUR'), max: convert(cost, 'EUR') };
       }
     }
 
     if (itemKey === 'stay') {
-      const stayMultipliers = { hotel: 1.0, airbnb: 0.75, camping: 0.25 };
+      const stayMultipliers = { hotel: 1.0, airbnb: 0.75, camping: 0.35, glamping: 1.5 };
       const stayTypeMultiplier = stayMultipliers[stayType];
       
       const rates = { budget: 100, mid: 250, premium: 500 };
       const base = rates[activeTier];
-      const cost = base * tierMultiplier * guestCount * durationMultiplier * stayTypeMultiplier;
+      const cost = base * tierMultiplier * missionPersonnel * durationMultiplier * stayTypeMultiplier * marketBuffer;
       return { min: convert(cost * 0.9, 'EUR'), max: convert(cost * 1.1, 'EUR') };
     }
 
     if (itemKey === 'transport') {
-      const cost = 30 * tierMultiplier * guestCount * durationMultiplier;
+      const cost = 30 * tierMultiplier * missionPersonnel * durationMultiplier * marketBuffer;
       let hub = selectedHub;
       if (overrideTier === 'budget') hub = 'BGY';
       if (overrideTier === 'premium') hub = 'LIN';
@@ -214,8 +253,8 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     }
 
     if (itemKey === 'misc') {
-      const base = 50 * tierMultiplier * durationMultiplier;
-      const merch = activeTier === 'premium' ? 250 * guestCount : activeTier === 'mid' ? 100 * guestCount : 50 * guestCount;
+      const base = 50 * tierMultiplier * durationMultiplier * marketBuffer;
+      const merch = (activeTier === 'premium' ? 250 : activeTier === 'mid' ? 100 : 50) * missionPersonnel;
       return { min: convert(base + merch, 'EUR'), max: convert(base + merch, 'EUR') };
     }
 
@@ -223,11 +262,28 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
   };
 
   const calculatePathTotal = (tier: 'budget' | 'mid' | 'premium') => {
-    const keys = ['food', 'inbound', 'stay', 'transport', 'misc'];
+    const keys = ['food', 'inbound', 'stay', 'transport', 'misc', 'tickets'];
     return keys.reduce((total, key) => {
       const val = getItemValues(key, tier);
       return total + ((val.min + val.max) / 2);
     }, 0);
+  };
+
+  const calculateAuditBadge = (tier: string) => {
+    const estimate = calculatePathTotal(tier as any);
+    const actual = Object.values(actualCosts[tier]).reduce((acc, val) => acc + val, 0);
+    const bookedCount = Object.values(bookedItems[tier]).filter(Boolean).length;
+    
+    if (bookedCount === 0) return null;
+    
+    // We only audit if at least one item is marked as booked and has an actual cost > 0
+    if (actual === 0) return null;
+
+    if (actual < estimate) {
+      return { type: 'win', label: 'Tactical Win', color: 'text-green-500' };
+    } else {
+      return { type: 'loss', label: 'Market Inefficiency', color: 'text-[#E10600]' };
+    }
   };
 
   const currentTotal = calculatePathTotal(budgetTier);
@@ -270,32 +326,33 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-12">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout" initial={false}>
           {currentStage === 1 && (
             <motion.div 
               key="stage1"
-              initial={{ x: 100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -100, opacity: 0 }}
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 600, damping: 45, mass: 1 }}
               className="space-y-12"
             >
               <div className="space-y-2">
                 <h2 className="text-4xl font-black uppercase italic tracking-tighter">Tactical <span className="text-[#E10600]">Briefing.</span></h2>
                 <p className="text-xs font-bold text-white/40 uppercase tracking-widest leading-relaxed max-w-xl">
-                  Configure your deployment parameters. Precision inputs lead to optimized race weekend strategy.
+                  Configure mission parameters. Precision inputs required for strategy matrix deployment.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Guests */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Personnel */}
                 <div className="p-8 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-6">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">01. Unit Size</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">01. Mission Personnel</span>
                   <div className="grid grid-cols-4 gap-2">
                     {[1, 2, 3, 4].map(n => (
                       <button 
                         key={n}
-                        onClick={() => setGuestCount(n)}
-                        className={`h-12 rounded font-mono font-black text-sm transition-all ${guestCount === n ? 'bg-[#E10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.4)]' : 'bg-black border border-[#1A1A1A] text-white/40 hover:text-white'}`}
+                        onClick={() => setMissionPersonnel(n)}
+                        className={`h-12 rounded font-mono font-black text-sm transition-all ${missionPersonnel === n ? 'bg-[#E10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.4)]' : 'bg-black border border-[#1A1A1A] text-white/40 hover:text-white'}`}
                       >
                         {n}
                       </button>
@@ -308,14 +365,14 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">02. Mission Origin</span>
                   <input 
                     type="text"
-                    value={fromCity}
-                    onChange={(e) => setFromCity(e.target.value)}
-                    placeholder="ENTER CITY"
+                    value={originCity}
+                    onChange={(e) => setOriginCity(e.target.value)}
+                    placeholder="ENTER CITY OF ORIGIN..."
                     className="w-full bg-black border border-[#1A1A1A] rounded h-12 px-4 font-mono font-black uppercase text-sm focus:outline-none focus:border-[#E10600] transition-all placeholder:text-white/10"
                   />
                 </div>
 
-                {/* Transport */}
+                {/* Inbound */}
                 <div className="p-8 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-6">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">03. Inbound Mode</span>
                   <div className="grid grid-cols-3 gap-2">
@@ -323,24 +380,26 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                       <button 
                         key={m}
                         onClick={() => setInboundMode(m)}
-                        className={`h-12 rounded text-xs font-black uppercase transition-all ${inboundMode === m ? 'bg-[#E10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.4)]' : 'bg-black border border-[#1A1A1A] text-white/40 hover:text-white'}`}
+                        className={`h-12 rounded text-[9px] font-black uppercase transition-all flex flex-col items-center justify-center gap-1 ${inboundMode === m ? 'bg-[#E10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.4)]' : 'bg-black border border-[#1A1A1A] text-white/40 hover:text-white'}`}
                       >
-                        {m === 'plane' ? '✈️' : m === 'train' ? '🚆' : '🚗'}
+                        <span>{m === 'plane' ? '✈️' : m === 'train' ? '🚆' : '🚗'}</span>
+                        <span className="text-[7px] tracking-widest">{m}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Stay Type */}
+                {/* Accommodation */}
                 <div className="p-8 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-6">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">04. Accommodation Base</span>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['hotel', 'airbnb', 'camping'] as const).map(t => (
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['hotel', 'airbnb', 'camping', 'glamping'] as const).map(t => (
                       <button 
                         key={t}
                         onClick={() => setStayType(t)}
-                        className={`h-12 rounded text-[9px] font-black uppercase tracking-tighter transition-all ${stayType === t ? 'bg-[#E10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.4)]' : 'bg-black border border-[#1A1A1A] text-white/40 hover:text-white'}`}
+                        className={`h-12 rounded text-[9px] font-black uppercase tracking-tighter transition-all flex items-center justify-center gap-2 ${stayType === t ? 'bg-[#E10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.4)]' : 'bg-black border border-[#1A1A1A] text-white/40 hover:text-white'}`}
                       >
+                        <span>{t === 'hotel' ? '🏨' : t === 'airbnb' ? '🏠' : t === 'camping' ? '⛺' : '🎪'}</span>
                         {t}
                       </button>
                     ))}
@@ -351,7 +410,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 <div className="p-8 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-6">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">05. Deployment Duration</span>
                   <div className="grid grid-cols-2 gap-2">
-                    {[3, 5].map(d => (
+                    {[3, 4].map(d => (
                       <button 
                         key={d}
                         onClick={() => setDurationDays(d as any)}
@@ -382,14 +441,19 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
               <div className="flex flex-col items-center pt-12 space-y-6">
                 <button 
-                  onClick={() => fromCity.trim() && setCurrentStage(2)}
-                  disabled={!fromCity.trim()}
-                  className="px-16 py-6 bg-white text-black text-sm font-black uppercase tracking-[0.4em] rounded hover:bg-[#E10600] hover:text-white transition-all disabled:opacity-20 relative group"
+                  onClick={() => originCity.trim() && setCurrentStage(2)}
+                  disabled={!originCity.trim()}
+                  className="px-16 py-6 border-2 border-white text-white text-sm font-black uppercase tracking-[0.4em] rounded hover:bg-[#E10600] hover:border-[#E10600] transition-all disabled:opacity-5 disabled:cursor-not-allowed group relative overflow-hidden"
                 >
-                  Calculate Strategy
-                  <div className="absolute inset-0 border-2 border-white rounded animate-ping pointer-events-none group-hover:border-[#E10600]" />
+                  <span className="relative z-10">Calculate Strategy</span>
+                  <motion.div 
+                    initial={{ x: '-100%' }}
+                    whileHover={{ x: '100%' }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 bg-[#E10600] opacity-20"
+                  />
                 </button>
-                <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Ready for matrix deployment</p>
+                {!originCity.trim() && <p className="text-[10px] font-black text-[#E10600] uppercase tracking-[0.3em] animate-pulse italic">Input Required: Mission Origin city</p>}
               </div>
             </motion.div>
           )}
@@ -397,79 +461,106 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
           {currentStage === 2 && (
              <motion.div 
                key="stage2"
-               initial={{ x: 100, opacity: 0 }}
-               animate={{ x: 0, opacity: 1 }}
-               exit={{ x: -100, opacity: 0 }}
+               initial={{ x: '100%' }}
+               animate={{ x: 0 }}
+               exit={{ x: '-100%' }}
+               transition={{ type: 'spring', stiffness: 600, damping: 45, mass: 1 }}
                className="space-y-12"
              >
                 <div className="flex items-end justify-between">
                   <div className="space-y-2">
                     <h2 className="text-4xl font-black uppercase italic tracking-tighter">Strategy <span className="text-[#E10600]">Matrix.</span></h2>
-                    <p className="text-xs font-bold text-white/40 uppercase tracking-widest">3 Optimized paths decoded for {data.name}.</p>
+                    <p className="text-xs font-bold text-white/40 uppercase tracking-widest">3 Comparative paths decoded for {data.name}.</p>
                   </div>
                   <button 
                     onClick={() => setCurrentStage(1)}
                     className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
                   >
-                    <RotateCcw className="w-4 h-4" /> Recalibrate Mission
+                    <RotateCcw className="w-4 h-4" /> Recalibrate mission
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                    {[
                      { id: 'budget', label: 'Budget Alternative', tier: 'budget', desc: 'Lowest cost entry point.' },
-                     { id: 'recommended', label: 'Recommended Path', tier: budgetTier, desc: 'Optimized for selected tier.' },
-                     { id: 'performance', label: 'Performance Upgrade', tier: 'premium', desc: 'Maximum track proximity.' }
+                     { id: 'recommended', label: 'Recommended Path', tier: budgetTier, desc: 'Optimized for tactical briefing.' },
+                     { id: 'performance', label: 'Performance Upgrade', tier: 'premium', desc: 'Maximum proximity/efficiency.' }
                    ].map((path) => (
                      <div key={path.id} className={`p-8 border bg-[#050505] rounded-xl space-y-8 relative overflow-hidden group ${path.id === 'recommended' ? 'border-[#E10600]/50 shadow-[0_0_30px_rgba(225,6,0,0.05)]' : 'border-[#1A1A1A]'}`}>
-                        {path.id === 'recommended' && <div className="absolute top-0 right-0 px-3 py-1 bg-[#E10600] text-white text-[8px] font-black uppercase tracking-widest">Selected Strategy</div>}
+                        {path.id === 'recommended' && <div className="absolute top-0 right-0 px-3 py-1 bg-[#E10600] text-white text-[8px] font-black uppercase tracking-widest">Active Strategy</div>}
                         
                         <div className="space-y-2">
                           <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600]">{path.label}</span>
-                          <h3 className="text-2xl font-black uppercase italic tracking-tighter">{path.tier} Tier</h3>
-                          <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{path.desc}</p>
+                          <h3 className="text-2xl font-black uppercase italic tracking-tighter">{path.tier} Deployment</h3>
+                          {calculateAuditBadge(path.tier) && (
+                            <div className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 ${calculateAuditBadge(path.tier)?.color}`}>
+                              <Zap className="w-3 h-3 fill-current" /> {calculateAuditBadge(path.tier)?.label}
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-4 font-mono">
                            <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                              <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Total Estimated Budget</span>
+                              <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Est. Tactical Budget</span>
                               <div className="text-2xl font-black"><Counter value={Math.round(calculatePathTotal(path.tier as any))} currency={selectedCurrency} /></div>
-                           </div>
-                           <div className="space-y-2">
-                              <div className="flex justify-between text-[10px] uppercase">
-                                <span className="text-white/30">Inbound Hub</span>
-                                <span className="font-black">{path.tier === 'premium' ? 'LIN' : path.tier === 'budget' ? 'BGY' : 'MXP'}</span>
-                              </div>
-                              <div className="flex justify-between text-[10px] uppercase">
-                                <span className="text-white/30">Accommodation</span>
-                                <span className="font-black">{stayType}</span>
-                              </div>
                            </div>
                         </div>
 
-                        <div className="space-y-3 pt-4">
-                          <button 
-                            onClick={() => {
-                              setSelectedHub(path.tier === 'premium' ? 'LIN' : path.tier === 'budget' ? 'BGY' : 'MXP');
-                              setBudgetTier(path.tier as any);
-                              setCurrentStage(3);
-                            }}
-                            className={`w-full py-4 rounded text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.02] ${path.id === 'recommended' ? 'bg-[#E10600] text-white' : 'bg-white text-black'}`}
-                          >
-                            Deploy {path.label.split(' ')[0]}
-                          </button>
-                          <button 
-                            onClick={() => {
-                              const hub = path.tier === 'premium' ? 'LIN' : path.tier === 'budget' ? 'BGY' : 'MXP';
-                              const url = inboundMode === 'plane' 
-                                ? `https://www.kiwi.com/en/search/results/${fromCity}/${hub}/2026-09-04/2026-09-07?adults=${guestCount}`
-                                : `https://www.google.com/maps/dir/${fromCity}/Milan`;
-                              window.open(url, '_blank');
-                            }}
-                            className="w-full py-3 border border-[#1A1A1A] rounded text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:border-white transition-all"
-                          >
-                            Execute booking
-                          </button>
+                        {/* Booking Checklist & Price Verification */}
+                        <div className="space-y-4">
+                          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">Mission Checklist</span>
+                          {(['tickets', 'stay', 'transport'] as const).map(item => (
+                            <div key={item} className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <button 
+                                  onClick={() => toggleBooked(path.tier, item)}
+                                  className={`flex items-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all ${bookedItems[path.tier][item] ? 'text-[#E10600]' : 'text-white/40 hover:text-white'}`}
+                                >
+                                  <div className={`w-4 h-4 border flex items-center justify-center rounded-sm ${bookedItems[path.tier][item] ? 'bg-[#E10600] border-[#E10600]' : 'border-white/20'}`}>
+                                    {bookedItems[path.tier][item] && <Check className="w-3 h-3 text-white" />}
+                                  </div>
+                                  BOOK {item}
+                                </button>
+                                <span className="text-[9px] font-mono text-white/40">{getCurrencySymbol(selectedCurrency)}{Math.round(getItemValues(item, path.tier as any).min)} est.</span>
+                              </div>
+                              
+                              {bookedItems[path.tier][item] && (
+                                <motion.div 
+                                  initial={{ opacity: 0, y: -5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="pl-7 space-y-1"
+                                >
+                                  <span className="text-[8px] font-black uppercase text-white/20">What did you actually pay?</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-mono text-white/40">{getCurrencySymbol(selectedCurrency)}</span>
+                                    <input 
+                                      type="number"
+                                      placeholder="0"
+                                      onChange={(e) => updateActualCost(path.tier, item, e.target.value)}
+                                      className="bg-transparent border-b border-white/10 w-20 text-[10px] font-mono focus:outline-none focus:border-[#E10600] py-1"
+                                    />
+                                  </div>
+                                </motion.div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="pt-4 space-y-3">
+                          {engagedCards[path.tier] ? (
+                            <button 
+                              onClick={() => {
+                                setSelectedHub(path.tier === 'premium' ? 'LIN' : path.tier === 'budget' ? 'BGY' : 'MXP');
+                                setBudgetTier(path.tier as any);
+                                setCurrentStage(3);
+                              }}
+                              className="w-full py-4 bg-[#E10600] text-white text-[10px] font-black uppercase tracking-[0.4em] rounded hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(225,6,0,0.3)]"
+                            >
+                              Deploy Mission Hub
+                            </button>
+                          ) : (
+                            <p className="text-center text-[8px] font-black uppercase text-white/10 tracking-widest italic">Engage with checklist to deploy</p>
+                          )}
                         </div>
                      </div>
                    ))}
@@ -480,119 +571,123 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
           {currentStage === 3 && (
             <motion.div 
               key="stage3"
-              initial={{ x: 100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -100, opacity: 0 }}
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 600, damping: 45, mass: 1 }}
               className="space-y-12"
             >
                <div className="flex items-end justify-between">
                   <div className="space-y-2">
                     <h2 className="text-4xl font-black uppercase italic tracking-tighter">Command <span className="text-[#E10600]">Center.</span></h2>
-                    <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Always-on companion for Monza 2026 deployment.</p>
+                    <p className="text-xs font-bold text-white/40 uppercase tracking-widest leading-relaxed">Live mission execution for Monza 2026. Telemetry active.</p>
                   </div>
                   <button 
                     onClick={() => setCurrentStage(2)}
                     className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
                   >
-                    <ArrowLeft className="w-4 h-4" /> Exit to Matrix
+                    <ArrowLeft className="w-4 h-4" /> Exit to matrix
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                   {/* Schedule Countdown */}
+                   {/* Integrated Timeline */}
                    <div className="lg:col-span-8 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-8 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-4 font-mono font-black text-sm text-[#E10600] animate-pulse">LIVE TELEMETRY</div>
+                      <div className="absolute top-0 right-0 p-4 font-mono font-black text-sm text-[#E10600] animate-pulse">BATTLE TIMELINE</div>
                       <div className="space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Official Schedule</span>
-                        <h3 className="text-2xl font-black uppercase italic">Monza 2026 Timeline</h3>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Merged Data Feed</span>
+                        <h3 className="text-2xl font-black uppercase italic tracking-tighter">Integrated Schedule & Weather</h3>
                       </div>
                       
                       <div className="space-y-4">
                          {[
-                           { event: 'FP1: Practice Session 1', time: 'FRI 13:30', status: 'Upcoming' },
-                           { event: 'F1 Sprint / Quali', time: 'SAT 16:00', status: 'Tactical Window' },
-                           { event: 'Grand Prix Race Start', time: 'SUN 15:00', status: 'Main Deployment' }
+                           { event: 'FP1: Practice Session 1', time: 'FRI 13:30', temp: '26°C', rain: '2%', icon: <Sun className="w-3 h-3 text-[#E10600]" /> },
+                           { event: 'F1 Sprint / Quali Window', time: 'SAT 16:00', temp: '27°C', rain: '15%', icon: <Zap className="w-3 h-3 text-[#E10600]" /> },
+                           { event: 'Grand Prix Main Race', time: 'SUN 15:00', temp: '29°C', rain: '5%', icon: <TrendingUp className="w-3 h-3 text-[#E10600]" /> }
                          ].map((ev, i) => (
-                           <div key={i} className="flex items-center justify-between p-4 border border-[#1A1A1A] rounded bg-black group hover:border-[#E10600] transition-all">
-                              <div className="space-y-1">
-                                <p className="text-xs font-black uppercase tracking-widest">{ev.event}</p>
-                                <p className="text-[10px] font-mono text-white/30 uppercase">{ev.status}</p>
+                           <div key={i} className="flex items-center justify-between p-4 border border-[#1A1A1A] rounded bg-black group hover:border-[#E10600] transition-all font-mono">
+                              <div className="flex items-center gap-6">
+                                <div className="text-sm font-black text-[#E10600] w-20">{ev.time}</div>
+                                <div className="h-4 w-px bg-white/10" />
+                                <div className="text-[11px] font-black uppercase tracking-widest text-white group-hover:text-[#E10600] transition-colors">{ev.event}</div>
                               </div>
-                              <div className="text-sm font-mono font-black text-[#E10600]">{ev.time}</div>
+                              <div className="flex items-center gap-6 text-[10px] font-black uppercase text-white/40">
+                                <div className="flex items-center gap-2">
+                                   {ev.icon}
+                                   <span>{ev.temp}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                   <CloudRain className="w-3 h-3" />
+                                   <span>{ev.rain} RAIN</span>
+                                </div>
+                              </div>
                            </div>
                          ))}
                       </div>
                    </div>
 
-                   {/* Weather */}
-                   <div className="lg:col-span-4 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600]">Weather Telemetry</span>
-                        <WeatherModule 
-                          gpKey={gpKey} 
-                          month={data.raceMonth} 
-                          coordinates={data.coordinates} 
-                        />
+                   {/* Tactical Navigation Notes */}
+                   <div className="lg:col-span-4 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-8 flex flex-col justify-between">
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600]">Expert Logistics</span>
+                          <h3 className="text-xl font-black uppercase italic tracking-tighter">Tactical Navigation</h3>
+                        </div>
+                        <div className="space-y-4">
+                           <div className="p-4 bg-white/5 border border-[#1A1A1A] rounded space-y-2 relative overflow-hidden group">
+                              <div className="absolute top-0 right-0 w-1 h-full bg-[#E10600] opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <span className="text-[8px] font-black uppercase text-white/30">Entry Strategy</span>
+                              <p className="text-[10px] font-bold leading-relaxed text-white italic">"Gate G (Vedano) is optimal entry for Grandstand 4."</p>
+                           </div>
+                           <div className="p-4 bg-white/5 border border-[#1A1A1A] rounded space-y-2 relative overflow-hidden group">
+                              <div className="absolute top-0 right-0 w-1 h-full bg-[#E10600] opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <span className="text-[8px] font-black uppercase text-white/30">Transit Secret</span>
+                              <p className="text-[10px] font-bold leading-relaxed text-white italic">"Buy digital 'Monza Express' via app to skip station lines."</p>
+                           </div>
+                           <div className="p-4 bg-[#E10600]/5 border border-[#E10600]/20 rounded space-y-2 relative overflow-hidden group">
+                              <div className="absolute top-0 right-0 w-1 h-full bg-[#E10600]" />
+                              <span className="text-[8px] font-black uppercase text-[#E10600]">Security Hack</span>
+                              <p className="text-[10px] font-bold leading-relaxed text-[#E10600] italic">"Keep spare bottle caps in pocket; security removes them at gates."</p>
+                           </div>
+                        </div>
                       </div>
-                      <div className="pt-8 space-y-2">
-                         <div className="flex justify-between text-[10px] uppercase font-black">
-                            <span className="text-white/30">Track Temp</span>
-                            <span>42°C Est.</span>
-                         </div>
-                         <div className="flex justify-between text-[10px] uppercase font-black">
-                            <span className="text-white/30">Rain Risk</span>
-                            <span className="text-[#E10600]">High Index (Sept Storms)</span>
-                         </div>
-                      </div>
+                      <button 
+                        onClick={() => window.print()}
+                        className="w-full py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] rounded hover:bg-[#E10600] hover:text-white transition-all"
+                      >
+                        Export Offline Dossier
+                      </button>
                    </div>
 
-                   {/* Last-Mile Logistics */}
-                   <div className="lg:col-span-6 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-6">
-                      <div className="space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Last-Mile Instructions</span>
-                        <h3 className="text-xl font-black uppercase italic">Deployment Navigation</h3>
-                      </div>
-                      <div className="space-y-4">
-                         <div className="p-4 bg-white/5 border border-[#1A1A1A] rounded space-y-2">
-                            <span className="text-[9px] font-black text-[#E10600] uppercase tracking-widest">Main Strategy</span>
-                            <p className="text-xs font-bold leading-relaxed italic text-white/80">"Take Trenord S8 from Centrale; Arrive at Monza Station; 40m walk to Gate G (Vedano). The Black Shuttle is the fastest route to the Ascari chicane."</p>
-                         </div>
-                         <div className="grid grid-cols-2 gap-4 pt-2">
-                            <div className="space-y-1">
-                               <span className="text-[8px] font-black uppercase text-white/20">Station Hub</span>
-                               <p className="text-[10px] font-black uppercase">Milano Centrale</p>
-                            </div>
-                            <div className="space-y-1 text-right">
-                               <span className="text-[8px] font-black uppercase text-white/20">Transfer Time</span>
-                               <p className="text-[10px] font-black uppercase">~35 Minutes</p>
-                            </div>
-                         </div>
-                      </div>
-                   </div>
-
-                   {/* Checklist */}
-                   <div className="lg:col-span-6 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-6">
+                   {/* Gear Checklist */}
+                   <div className="lg:col-span-12 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-8">
                       <div className="flex items-center justify-between">
                         <div className="space-y-2">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Tactical Gear Checklist</span>
-                          <h3 className="text-xl font-black uppercase italic">Personal Kit</h3>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Essential Mission Kit</span>
+                          <h3 className="text-2xl font-black uppercase italic tracking-tighter">Tactical Gear Checklist</h3>
                         </div>
-                        <button 
-                          onClick={resetItems}
-                          className="text-[9px] font-black uppercase text-white/20 hover:text-[#E10600] transition-colors"
-                        >Reset Cache</button>
+                        <span className="font-mono text-[10px] text-white/20 uppercase tracking-widest">Kit Integrity: {Math.round((Object.values(packedItems).filter(Boolean).length / 5) * 100)}%</span>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[180px] overflow-y-auto no-scrollbar pr-2">
-                        {data.packingChecklist.map((item: string, i: number) => (
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {[
+                          { item: 'Earplugs', note: 'Session Starts' },
+                          { item: '20k mAh Powerbank', note: 'Telemetry Sync' },
+                          { item: 'Poncho', note: 'Storm Window' },
+                          { item: 'Comfort Shoes', note: '15km Distance' },
+                          { item: 'Sunscreen', note: 'High UV Index' }
+                        ].map((obj, i) => (
                           <button 
                             key={i}
                             onClick={() => toggleItem(i)}
-                            className={`flex items-center gap-3 p-3 border rounded text-[10px] font-bold uppercase transition-all ${packedItems[i] ? 'bg-[#E10600]/10 border-[#E10600] text-white' : 'bg-black border-[#1A1A1A] text-white/30 hover:text-white'}`}
+                            className={`flex flex-col items-start gap-4 p-5 border rounded transition-all group relative overflow-hidden ${packedItems[i] ? 'bg-[#E10600]/10 border-[#E10600] text-white' : 'bg-black border-[#1A1A1A] text-white/30 hover:text-white'}`}
                           >
-                             <div className={`w-3 h-3 border rounded flex items-center justify-center ${packedItems[i] ? 'bg-[#E10600] border-[#E10600]' : 'border-white/20'}`}>
-                               {packedItems[i] && <Check className="w-2.5 h-2.5 text-white" />}
+                             <div className="flex items-center justify-between w-full">
+                               <span className="text-[10px] font-black uppercase tracking-widest">{obj.item}</span>
+                               <div className={`w-3 h-3 border rounded-sm flex items-center justify-center ${packedItems[i] ? 'bg-[#E10600] border-[#E10600]' : 'border-white/20'}`}>
+                                 {packedItems[i] && <Check className="w-2.5 h-2.5 text-white" />}
+                               </div>
                              </div>
-                             <span className="truncate">{item}</span>
+                             <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/20 italic">{obj.note}</span>
                           </button>
                         ))}
                       </div>
