@@ -85,12 +85,12 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
    const [currentStage, setCurrentStage] = useState<1 | 2 | 3>(1);
    
    // 2. TACTICAL INTAKE STATE (Stage 1)
-   const [missionPersonnel, setMissionPersonnel] = useState(1);
-   const [originCity, setOriginCity] = useState('');
-   const [inboundMode, setInboundMode] = useState<'plane' | 'train' | 'car'>('plane');
-   const [stayType, setStayType] = useState<'hotel' | 'airbnb' | 'camping' | 'glamping'>('hotel');
-   const [durationDays, setDurationDays] = useState<3 | 4>(3);
-   const [budgetTier, setBudgetTier] = useState<'budget' | 'mid' | 'premium'>('mid');
+    const [missionPersonnel, setMissionPersonnel] = useState(1);
+    const [originCity, setOriginCity] = useState('');
+    const [inboundMode, setInboundMode] = useState<'plane' | 'train' | 'car'>('plane');
+    const [stayType, setStayType] = useState<'hotel' | 'airbnb' | 'camping' | 'glamping'>('hotel');
+    const [durationDays, setDurationDays] = useState<3 | 4 | 5>(3);
+    const [budgetTier, setBudgetTier] = useState<'budget' | 'mid' | 'premium'>('mid');
 
    // 3. COMPARISON & HUB STATE (Stage 2/3)
    const [selectedHub, setSelectedHub] = useState<'LIN' | 'MXP' | 'BGY'>('LIN');
@@ -181,17 +181,41 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     }));
   };
 
-  const resetItems = () => {
-    setPackedItems({});
-  };
+   const getDistance = (city: string) => {
+     const c = city.toLowerCase().trim();
+     if (c.includes('madrid')) return 1550;
+     if (c.includes('london')) return 1250;
+     if (c.includes('paris')) return 850;
+     if (c.includes('barcelona')) return 950;
+     if (c.includes('rome')) return 580;
+     if (c.includes('berlin')) return 1030;
+     return 1000; // Fallback
+   };
+
+   const getBookingUrl = (type: string, tier: string, origin: string) => {
+     const personnel = missionPersonnel;
+     const hub = tier === 'premium' ? 'LIN' : tier === 'budget' ? 'BGY' : 'MXP';
+     
+     if (type === 'tickets') return `https://www.google.com/search?q=official-f1-tickets.com+monza+2026`;
+     if (type === 'stay') return `https://www.booking.com/search.html?ss=Milan&group_adults=${personnel}&checkin=2026-09-03&checkout=2026-09-07`;
+     if (type === 'transport') {
+       if (inboundMode === 'plane') return `https://www.kiwi.com/en/search/results/${origin || 'anywhere'}/${hub}/2026-09-03/2026-09-07?adults=${personnel}`;
+       return `https://www.google.com/maps/dir/${origin || 'My+Location'}/Autodromo+Nazionale+Monza`;
+     }
+     return '#';
+   };
+
+   const resetItems = () => {
+     setPackedItems({});
+   };
 
   const getItemValues = (itemKey: string, overrideTier?: 'budget' | 'mid' | 'premium') => {
     const activeTier = overrideTier || budgetTier;
     const tierMultiplier = tierMultipliers[activeTier];
-    const durationMultiplier = durationDays === 4 ? 1.3 : 1.0;
+    const durationMultiplier = durationDays === 5 ? 1.6 : durationDays === 4 ? 1.3 : 1.0;
     const marketBuffer = 1.10; // 10% Market Volatility Buffer
     
-    const distanceKm = originCity.toLowerCase() === 'madrid' ? 1500 : 800;
+    const distanceKm = getDistance(originCity);
 
     if (itemKey === 'food') {
       const cost = 120 * tierMultiplier * missionPersonnel * durationMultiplier;
@@ -199,7 +223,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     }
 
     if (itemKey === 'tickets') {
-      const ticketPrices = { budget: 150, mid: 450, premium: 1200 }; // GA, Grandstand, VIP
+      const ticketPrices = { budget: 150, mid: 550, premium: 1200 }; // GA, Grandstand, VIP (v3.0 specs)
       const cost = ticketPrices[activeTier] * missionPersonnel;
       return { min: convert(cost, 'EUR'), max: convert(cost, 'EUR') };
     }
@@ -226,6 +250,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
         return { min: convert(cost, 'EUR'), max: convert(cost, 'EUR') };
       }
       if (inboundMode === 'car') {
+        // v3.0 Drive Logic: (Distance * 0.12) + €60 (Tolls)
         const cost = ((distanceKm * 0.12) + 60) * marketBuffer;
         return { min: convert(cost, 'EUR'), max: convert(cost, 'EUR') };
       }
@@ -280,9 +305,11 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
     if (actual === 0) return null;
 
     if (actual < estimate) {
-      return { type: 'win', label: 'Tactical Win', color: 'text-green-500' };
+      const diff = Math.round(estimate - actual);
+      return { type: 'win', label: `Tactical Win: ${getCurrencySymbol(selectedCurrency)}${diff} Saved`, color: 'text-green-500' };
     } else {
-      return { type: 'loss', label: 'Market Inefficiency', color: 'text-[#E10600]' };
+      const diff = Math.round(actual - estimate);
+      return { type: 'loss', label: `Market Inefficiency: ${getCurrencySymbol(selectedCurrency)}${diff} Overpaid`, color: 'text-[#E10600]' };
     }
   };
 
@@ -367,7 +394,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                     type="text"
                     value={originCity}
                     onChange={(e) => setOriginCity(e.target.value)}
-                    placeholder="ENTER CITY OF ORIGIN..."
+                    placeholder="SEARCH ORIGIN CITY..."
                     className="w-full bg-black border border-[#1A1A1A] rounded h-12 px-4 font-mono font-black uppercase text-sm focus:outline-none focus:border-[#E10600] transition-all placeholder:text-white/10"
                   />
                 </div>
@@ -383,7 +410,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                         className={`h-12 rounded text-[9px] font-black uppercase transition-all flex flex-col items-center justify-center gap-1 ${inboundMode === m ? 'bg-[#E10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.4)]' : 'bg-black border border-[#1A1A1A] text-white/40 hover:text-white'}`}
                       >
                         <span>{m === 'plane' ? '✈️' : m === 'train' ? '🚆' : '🚗'}</span>
-                        <span className="text-[7px] tracking-widest">{m}</span>
+                        <span className="text-[7px] tracking-widest">{m === 'plane' ? 'FLIGHTS' : m === 'train' ? 'RAIL' : 'DRIVE'}</span>
                       </button>
                     ))}
                   </div>
@@ -409,8 +436,8 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                 {/* Duration */}
                 <div className="p-8 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-6">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">05. Deployment Duration</span>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[3, 4].map(d => (
+                  <div className="grid grid-cols-3 gap-2">
+                    {[3, 4, 5].map(d => (
                       <button 
                         key={d}
                         onClick={() => setDurationDays(d as any)}
@@ -482,16 +509,16 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                    {[
-                     { id: 'budget', label: 'Budget Alternative', tier: 'budget', desc: 'Lowest cost entry point.' },
-                     { id: 'recommended', label: 'Recommended Path', tier: budgetTier, desc: 'Optimized for tactical briefing.' },
-                     { id: 'performance', label: 'Performance Upgrade', tier: 'premium', desc: 'Maximum proximity/efficiency.' }
+                     { id: 'budget', label: 'Budget Alternative', tier: 'budget', desc: 'GA (€150) + Camping entry.' },
+                     { id: 'recommended', label: 'Recommended Path', tier: budgetTier, desc: 'Grandstand (€550) + Strategic Stay.' },
+                     { id: 'performance', label: 'Performance Upgrade', tier: 'premium', desc: 'VIP (€1,200) + Elite Proximity.' }
                    ].map((path) => (
-                     <div key={path.id} className={`p-8 border bg-[#050505] rounded-xl space-y-8 relative overflow-hidden group ${path.id === 'recommended' ? 'border-[#E10600]/50 shadow-[0_0_30px_rgba(225,6,0,0.05)]' : 'border-[#1A1A1A]'}`}>
-                        {path.id === 'recommended' && <div className="absolute top-0 right-0 px-3 py-1 bg-[#E10600] text-white text-[8px] font-black uppercase tracking-widest">Active Strategy</div>}
+                     <div key={path.id} className={`p-8 border bg-[#050505] rounded-xl space-y-8 relative overflow-hidden group ${path.id === 'recommended' ? 'border-[#E10600]/80 shadow-[0_0_30px_rgba(225,6,0,0.1)]' : 'border-[#1A1A1A]'}`}>
+                        {path.id === 'recommended' && <div className="absolute top-0 right-0 px-3 py-1 bg-[#E10600] text-white text-[8px] font-black uppercase tracking-widest">Recommended Path</div>}
                         
                         <div className="space-y-2">
                           <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600]">{path.label}</span>
-                          <h3 className="text-2xl font-black uppercase italic tracking-tighter">{path.tier} Deployment</h3>
+                          <h3 className="text-2xl font-black uppercase italic tracking-tighter">{path.tier} deployment</h3>
                           {calculateAuditBadge(path.tier) && (
                             <div className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 ${calculateAuditBadge(path.tier)?.color}`}>
                               <Zap className="w-3 h-3 fill-current" /> {calculateAuditBadge(path.tier)?.label}
@@ -501,47 +528,53 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
                         <div className="space-y-4 font-mono">
                            <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                              <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Est. Tactical Budget</span>
+                              <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Est. mission budget</span>
                               <div className="text-2xl font-black"><Counter value={Math.round(calculatePathTotal(path.tier as any))} currency={selectedCurrency} /></div>
                            </div>
                         </div>
 
-                        {/* Booking Checklist & Price Verification */}
-                        <div className="space-y-4">
-                          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">Mission Checklist</span>
+                        {/* Booking Matrix v3.0 */}
+                        <div className="space-y-6">
+                          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">The Booking Matrix</span>
                           {(['tickets', 'stay', 'transport'] as const).map(item => (
-                            <div key={item} className="space-y-2">
-                              <div className="flex items-center justify-between">
+                            <div key={item} className="space-y-3">
+                              <div className="flex items-center justify-between gap-4">
+                                <button 
+                                  onClick={() => window.open(getBookingUrl(item, path.tier, originCity), '_blank')}
+                                  className="flex-1 py-3 bg-[#1A1A1A] border border-white/5 rounded text-[9px] font-black uppercase tracking-widest text-white hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2"
+                                >
+                                  {item === 'tickets' ? '🎫' : item === 'stay' ? '🏨' : '✈️'}
+                                  Book {item}
+                                </button>
                                 <button 
                                   onClick={() => toggleBooked(path.tier, item)}
-                                  className={`flex items-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all ${bookedItems[path.tier][item] ? 'text-[#E10600]' : 'text-white/40 hover:text-white'}`}
+                                  className={`p-3 rounded border transition-all ${bookedItems[path.tier][item] ? 'bg-[#E10600] border-[#E10600] text-white' : 'bg-black border-white/10 text-white/20 hover:text-white'}`}
                                 >
-                                  <div className={`w-4 h-4 border flex items-center justify-center rounded-sm ${bookedItems[path.tier][item] ? 'bg-[#E10600] border-[#E10600]' : 'border-white/20'}`}>
-                                    {bookedItems[path.tier][item] && <Check className="w-3 h-3 text-white" />}
-                                  </div>
-                                  BOOK {item}
+                                  <Check className="w-3 h-3" />
                                 </button>
-                                <span className="text-[9px] font-mono text-white/40">{getCurrencySymbol(selectedCurrency)}{Math.round(getItemValues(item, path.tier as any).min)} est.</span>
                               </div>
                               
-                              {bookedItems[path.tier][item] && (
-                                <motion.div 
-                                  initial={{ opacity: 0, y: -5 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  className="pl-7 space-y-1"
-                                >
-                                  <span className="text-[8px] font-black uppercase text-white/20">What did you actually pay?</span>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-mono text-white/40">{getCurrencySymbol(selectedCurrency)}</span>
-                                    <input 
-                                      type="number"
-                                      placeholder="0"
-                                      onChange={(e) => updateActualCost(path.tier, item, e.target.value)}
-                                      className="bg-transparent border-b border-white/10 w-20 text-[10px] font-mono focus:outline-none focus:border-[#E10600] py-1"
-                                    />
-                                  </div>
-                                </motion.div>
-                              )}
+                              <AnimatePresence>
+                                {bookedItems[path.tier][item] && (
+                                  <motion.div 
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="pl-2 space-y-1 overflow-hidden"
+                                  >
+                                    <span className="text-[8px] font-black uppercase text-white/20">Actual Price Paid?</span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-mono text-white/40">{getCurrencySymbol(selectedCurrency)}</span>
+                                      <input 
+                                        type="number"
+                                        placeholder="0"
+                                        onChange={(e) => updateActualCost(path.tier, item, e.target.value)}
+                                        className="bg-transparent border-b border-white/10 w-24 text-[11px] font-mono focus:outline-none focus:border-[#E10600] py-1 text-white"
+                                      />
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
                             </div>
                           ))}
                         </div>
@@ -550,16 +583,15 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                           {engagedCards[path.tier] ? (
                             <button 
                               onClick={() => {
-                                setSelectedHub(path.tier === 'premium' ? 'LIN' : path.tier === 'budget' ? 'BGY' : 'MXP');
                                 setBudgetTier(path.tier as any);
                                 setCurrentStage(3);
                               }}
-                              className="w-full py-4 bg-[#E10600] text-white text-[10px] font-black uppercase tracking-[0.4em] rounded hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(225,6,0,0.3)]"
+                              className="w-full py-5 bg-[#E10600] text-white text-[11px] font-black uppercase tracking-[0.5em] rounded hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(225,6,0,0.3)]"
                             >
                               Deploy Mission Hub
                             </button>
                           ) : (
-                            <p className="text-center text-[8px] font-black uppercase text-white/10 tracking-widest italic">Engage with checklist to deploy</p>
+                            <p className="text-center text-[9px] font-black uppercase text-white/10 tracking-[0.3em] italic">Engage matrix to activate</p>
                           )}
                         </div>
                      </div>
@@ -595,30 +627,31 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                    <div className="lg:col-span-8 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-8 relative overflow-hidden">
                       <div className="absolute top-0 right-0 p-4 font-mono font-black text-sm text-[#E10600] animate-pulse">BATTLE TIMELINE</div>
                       <div className="space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Merged Data Feed</span>
-                        <h3 className="text-2xl font-black uppercase italic tracking-tighter">Integrated Schedule & Weather</h3>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Integrated Telemetry</span>
+                        <h3 className="text-2xl font-black uppercase italic tracking-tighter">Mission Schedule & Weather</h3>
                       </div>
                       
                       <div className="space-y-4">
                          {[
                            { event: 'FP1: Practice Session 1', time: 'FRI 13:30', temp: '26°C', rain: '2%', icon: <Sun className="w-3 h-3 text-[#E10600]" /> },
-                           { event: 'F1 Sprint / Quali Window', time: 'SAT 16:00', temp: '27°C', rain: '15%', icon: <Zap className="w-3 h-3 text-[#E10600]" /> },
+                           { event: 'FP2: Practice Session 2', time: 'FRI 17:00', temp: '25°C', rain: '8%', icon: <Sun className="w-3 h-3 text-[#E10600]" /> },
+                           { event: 'F1 Quali / Sprint Window', time: 'SAT 16:00', temp: '27°C', rain: '15%', icon: <Zap className="w-3 h-3 text-[#E10600]" /> },
                            { event: 'Grand Prix Main Race', time: 'SUN 15:00', temp: '29°C', rain: '5%', icon: <TrendingUp className="w-3 h-3 text-[#E10600]" /> }
                          ].map((ev, i) => (
                            <div key={i} className="flex items-center justify-between p-4 border border-[#1A1A1A] rounded bg-black group hover:border-[#E10600] transition-all font-mono">
                               <div className="flex items-center gap-6">
-                                <div className="text-sm font-black text-[#E10600] w-20">{ev.time}</div>
+                                <div className="text-sm font-black text-[#E10600] w-24 tabular-nums text-right">{ev.time}</div>
                                 <div className="h-4 w-px bg-white/10" />
                                 <div className="text-[11px] font-black uppercase tracking-widest text-white group-hover:text-[#E10600] transition-colors">{ev.event}</div>
                               </div>
                               <div className="flex items-center gap-6 text-[10px] font-black uppercase text-white/40">
                                 <div className="flex items-center gap-2">
                                    {ev.icon}
-                                   <span>{ev.temp}</span>
+                                   <span className="tabular-nums">{ev.temp}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                    <CloudRain className="w-3 h-3" />
-                                   <span>{ev.rain} RAIN</span>
+                                   <span className="tabular-nums">{ev.rain} RAIN</span>
                                 </div>
                               </div>
                            </div>
@@ -626,55 +659,55 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                       </div>
                    </div>
 
-                   {/* Tactical Navigation Notes */}
+                   {/* Expert Tactical Navigation */}
                    <div className="lg:col-span-4 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-8 flex flex-col justify-between">
                       <div className="space-y-6">
                         <div className="space-y-2">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600]">Expert Logistics</span>
-                          <h3 className="text-xl font-black uppercase italic tracking-tighter">Tactical Navigation</h3>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600]">Tactical Intel Notes</span>
+                          <h3 className="text-xl font-black uppercase italic tracking-tighter">Monza 2026 Navigation</h3>
                         </div>
                         <div className="space-y-4">
                            <div className="p-4 bg-white/5 border border-[#1A1A1A] rounded space-y-2 relative overflow-hidden group">
                               <div className="absolute top-0 right-0 w-1 h-full bg-[#E10600] opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <span className="text-[8px] font-black uppercase text-white/30">Entry Strategy</span>
-                              <p className="text-[10px] font-bold leading-relaxed text-white italic">"Gate G (Vedano) is optimal entry for Grandstand 4."</p>
+                              <span className="text-[8px] font-black uppercase text-white/30">Transit Secret</span>
+                              <p className="text-[10px] font-bold leading-relaxed text-white italic">"Trenord Digital: Buy the 'Monza Special' via app; station kiosks have 40-min lines."</p>
                            </div>
                            <div className="p-4 bg-white/5 border border-[#1A1A1A] rounded space-y-2 relative overflow-hidden group">
                               <div className="absolute top-0 right-0 w-1 h-full bg-[#E10600] opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <span className="text-[8px] font-black uppercase text-white/30">Transit Secret</span>
-                              <p className="text-[10px] font-bold leading-relaxed text-white italic">"Buy digital 'Monza Express' via app to skip station lines."</p>
+                              <span className="text-[8px] font-black uppercase text-white/30">Optimal Entry</span>
+                              <p className="text-[10px] font-bold leading-relaxed text-white italic">"Gate G (Vedano): Optimal for Grandstand 4. 15m walk from Black Shuttle drop-off."</p>
                            </div>
                            <div className="p-4 bg-[#E10600]/5 border border-[#E10600]/20 rounded space-y-2 relative overflow-hidden group">
                               <div className="absolute top-0 right-0 w-1 h-full bg-[#E10600]" />
-                              <span className="text-[8px] font-black uppercase text-[#E10600]">Security Hack</span>
-                              <p className="text-[10px] font-bold leading-relaxed text-[#E10600] italic">"Keep spare bottle caps in pocket; security removes them at gates."</p>
+                              <span className="text-[8px] font-black uppercase text-[#E10600]">Security Alert</span>
+                              <p className="text-[10px] font-bold leading-relaxed text-[#E10600] italic">"Security Alert: Spare bottle caps required; security removes caps at gates."</p>
                            </div>
                         </div>
                       </div>
                       <button 
                         onClick={() => window.print()}
-                        className="w-full py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] rounded hover:bg-[#E10600] hover:text-white transition-all"
+                        className="w-full py-5 border-2 border-white text-white text-[10px] font-black uppercase tracking-[0.4em] rounded hover:bg-[#E10600] hover:border-[#E10600] transition-all"
                       >
                         Export Offline Dossier
                       </button>
                    </div>
 
-                   {/* Gear Checklist */}
+                   {/* Tactical Gear Checklist */}
                    <div className="lg:col-span-12 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl space-y-8">
                       <div className="flex items-center justify-between">
                         <div className="space-y-2">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Essential Mission Kit</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Deployment Kit</span>
                           <h3 className="text-2xl font-black uppercase italic tracking-tighter">Tactical Gear Checklist</h3>
                         </div>
-                        <span className="font-mono text-[10px] text-white/20 uppercase tracking-widest">Kit Integrity: {Math.round((Object.values(packedItems).filter(Boolean).length / 5) * 100)}%</span>
+                        <span className="font-mono text-[10px] text-white/20 uppercase tracking-widest">Readiness: {Math.round((Object.values(packedItems).filter(Boolean).length / 5) * 100)}%</span>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         {[
-                          { item: 'Earplugs', note: 'Session Starts' },
-                          { item: '20k mAh Powerbank', note: 'Telemetry Sync' },
-                          { item: 'Poncho', note: 'Storm Window' },
+                          { item: 'Earplugs', note: 'Noise Mitigation' },
+                          { item: '20k mAh Powerbank', note: 'Telemetry Link' },
+                          { item: 'Poncho', note: 'Precipitation Plan' },
                           { item: 'Comfort Shoes', note: '15km Distance' },
-                          { item: 'Sunscreen', note: 'High UV Index' }
+                          { item: 'Sunscreen', note: 'UV Protection' }
                         ].map((obj, i) => (
                           <button 
                             key={i}
@@ -700,7 +733,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&display=swap');
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         @media print {
           body { background: white !important; color: black !important; }
@@ -711,7 +744,7 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
           .text-white, .text-[#E10600], .text-white/40 { color: black !important; }
           main { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: none !important; }
           .lg:grid-cols-12 { display: block !important; }
-          .lg:col-span-8, .lg:col-span-4, .lg:col-span-6 { width: 100% !important; margin-bottom: 2rem !important; }
+          .lg:col-span-8, .lg:col-span-4, .lg:col-span-12 { width: 100% !important; margin-bottom: 2rem !important; }
         }
       `}</style>
     </div>
