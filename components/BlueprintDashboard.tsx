@@ -192,20 +192,19 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
      return 1000; // Fallback
    };
 
-   const getBookingUrl = (type: string, tier: string, origin: string) => {
-     const personnel = missionPersonnel;
-     const hub = tier === 'premium' ? 'LIN' : tier === 'budget' ? 'BGY' : 'MXP';
-     const airport = hub;
-     
-     if (type === 'tickets') return `https://tickets.formula1.com/en/f1-43257-italy`;
-     if (type === 'stay') return `https://www.booking.com/search.html?ss=Milan&group_adults=${personnel}&checkin=2026-09-03&checkout=2026-09-07&selected_currency=EUR`;
-     if (type === 'transport') {
-       if (inboundMode === 'car') return `https://www.viamichelin.com/web/Routes?departure=${encodeURIComponent(origin || 'Madrid')}&arrival=Monza&index=0&vehicle=0&type=0&fuelCost=1.6&allowance=0&corridor=`;
-       if (inboundMode === 'plane') return `https://www.kiwi.com/en/search/results/${encodeURIComponent(origin || 'anywhere')}/${airport}/2026-09-03/2026-09-07?adults=${personnel}`;
-       return `https://www.google.com/search?q=train+tickets+from+${encodeURIComponent(origin)}+to+Milan+September+2026`;
-     }
-     return '#';
-   };
+    const getBookingUrl = (type: string, tier: string, origin: string) => {
+      const personnel = missionPersonnel;
+      const hub = tier === 'premium' ? 'LIN' : tier === 'budget' ? 'BGY' : 'MXP';
+      
+      if (type === 'tickets') return "https://tickets.formula1.com/en/f1-43257-italy";
+      if (type === 'stay') return `https://www.booking.com/searchresults.html?ss=Monza&checkin=2026-09-03&checkout=2026-09-07&group_adults=${personnel}`;
+      if (type === 'transport') {
+        if (inboundMode === 'car') return `https://www.viamichelin.com/web/Routes?departure=${encodeURIComponent(origin)}&arrival=Monza`;
+        if (inboundMode === 'plane') return `https://www.kiwi.com/en/search/results/${encodeURIComponent(origin)}/${hub}/2026-09-03/2026-09-07?adults=${personnel}`;
+        return `https://www.google.com/search?q=train+tickets+from+${encodeURIComponent(origin)}+to+Milan+September+2026`;
+      }
+      return '#';
+    };
 
    const resetItems = () => {
      setPackedItems({});
@@ -511,9 +510,9 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                    {[
-                     { id: 'budget', label: budgetTier === 'budget' ? 'SELECTED STRATEGY' : 'BUDGET ALTERNATIVE', tier: 'budget', desc: 'GA (€150) + Camping entry.' },
-                     { id: 'mid', label: budgetTier === 'mid' ? 'SELECTED STRATEGY' : 'RECOMMENDED PATH', tier: 'mid', desc: 'Grandstand (€550) + Strategic Stay.' },
-                     { id: 'premium', label: budgetTier === 'premium' ? 'SELECTED STRATEGY' : 'PERFORMANCE UPGRADE', tier: 'premium', desc: 'VIP (€1,200) + Elite Proximity.' }
+                     { id: 'budget', label: budgetTier === 'budget' ? 'SELECTED STRATEGY' : 'BUDGET ALTERNATIVE', tier: 'budget' },
+                     { id: 'mid', label: budgetTier === 'mid' ? 'SELECTED STRATEGY' : 'MID-TIER STRATEGY', tier: 'mid' },
+                     { id: 'premium', label: budgetTier === 'premium' ? 'SELECTED STRATEGY' : 'PERFORMANCE UPGRADE', tier: 'premium' }
                    ].map((path) => (
                      <div key={path.id} className={`p-8 border bg-[#050505] rounded-xl space-y-8 relative overflow-hidden group ${path.label === 'SELECTED STRATEGY' ? 'border-[#E10600]/80 shadow-[0_0_30px_rgba(225,6,0,0.1)]' : 'border-[#1A1A1A]'}`}>
                         {path.label === 'SELECTED STRATEGY' && <div className="absolute top-0 right-0 px-3 py-1 bg-[#E10600] text-white text-[8px] font-black uppercase tracking-widest">Selected Strategy</div>}
@@ -636,8 +635,8 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                          {[
                            { event: 'FP1: Practice Session 1', time: 'FRI 13:30', temp: '26°C', rain: '2%', icon: <Sun className="w-3 h-3 text-[#E10600]" /> },
                            { event: 'FP2: Practice Session 2', time: 'FRI 17:00', temp: '25°C', rain: '8%', icon: <Sun className="w-3 h-3 text-[#E10600]" /> },
-                           { event: 'F1 Quali / Sprint Window', time: 'SAT 16:00', temp: '27°C', rain: '15%', icon: <Zap className="w-3 h-3 text-[#E10600]" /> },
-                           { event: 'Grand Prix Main Race', time: 'SUN 15:00', temp: '29°C', rain: '5%', icon: <TrendingUp className="w-3 h-3 text-[#E10600]" /> }
+                           { event: 'F1 Quali / Sprint Session', time: 'SAT 16:00', temp: '27°C', rain: '15%', icon: <Zap className="w-3 h-3 text-[#E10600]" /> },
+                           { event: 'Italian Grand Prix - Race', time: 'SUN 15:00', temp: '29°C', rain: '5%', icon: <TrendingUp className="w-3 h-3 text-[#E10600]" /> }
                          ].map((ev, i) => (
                            <div key={i} className="flex items-center justify-between p-4 border border-[#1A1A1A] rounded bg-black group hover:border-[#E10600] transition-all font-mono">
                               <div className="flex items-center gap-6">
@@ -670,13 +669,13 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                         <div className="space-y-6">
                            <div className="p-5 bg-white/5 border border-[#1A1A1A] rounded space-y-3 relative overflow-hidden group">
                               <div className="absolute top-0 left-0 w-1 h-full bg-[#E10600]" />
-                              <span className="text-[8px] font-black uppercase text-[#E10600] tracking-widest">Logistics Priority</span>
+                              <span className="text-[8px] font-black uppercase text-[#E10600] tracking-widest font-mono">Logistics Priority</span>
                               <p className="text-[11px] font-bold leading-relaxed text-white italic">"Trenord Digital: Buy the 'Monza Special' via app; station kiosks have 40-min lines."</p>
                            </div>
                            <div className="p-5 bg-white/5 border border-[#1A1A1A] rounded space-y-3 relative overflow-hidden group">
                               <div className="absolute top-0 left-0 w-1 h-full bg-white/20" />
-                              <span className="text-[8px] font-black uppercase text-white/40 tracking-widest">Security Protocol</span>
-                              <p className="text-[11px] font-bold leading-relaxed text-white italic">"Security Alert: Spare bottle caps required; security removes caps at gates."</p>
+                              <span className="text-[8px] font-black uppercase text-white/40 tracking-widest font-mono">Security Protocol</span>
+                              <p className="text-[11px] font-bold leading-relaxed text-white italic">"Bottle Cap Hack: Security removes caps at gates. Bring spares in your pocket."</p>
                            </div>
                         </div>
                       </div>
