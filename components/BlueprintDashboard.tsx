@@ -528,7 +528,11 @@ export function BlueprintDashboard({ data, totalBudget, gpKey }: BlueprintDashbo
                    <div className="lg:col-span-4 p-10 border border-[#1A1A1A] bg-[#050505] rounded-xl flex flex-col justify-between">
                       <div className="space-y-2">
                         <span className="text-[10px] font-black uppercase tracking-widest text-[#E10600]">Weather Telemetry</span>
-                        <WeatherModule />
+                        <WeatherModule 
+                          gpKey={gpKey} 
+                          month={data.raceMonth} 
+                          coordinates={data.coordinates} 
+                        />
                       </div>
                       <div className="pt-8 space-y-2">
                          <div className="flex justify-between text-[10px] uppercase font-black">
