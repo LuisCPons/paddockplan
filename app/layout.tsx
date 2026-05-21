@@ -17,7 +17,29 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "PaddockPlan | The Definitive Race Control Platform",
   description: "Get expert-backed logistics, stay heatmaps, and track-side secrets for the 2026 season.",
-  };
+  openGraph: {
+    title: "PaddockPlan | The Definitive Race Control Platform",
+    description: "Get expert-backed logistics, stay heatmaps, and track-side secrets for the 2026 season.",
+    url: "https://paddockplan.vercel.app",
+    siteName: "PaddockPlan",
+    images: [
+      {
+        url: "https://coachdaveacademy.com/wp-content/uploads/2023/07/banner-image-silverstonetg-1.jpg",
+        width: 1200,
+        height: 630,
+        alt: "PaddockPlan Digital Race Control Platform Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PaddockPlan | The Definitive Race Control Platform",
+    description: "Get expert-backed logistics, stay heatmaps, and track-side secrets for the 2026 season.",
+    images: ["https://coachdaveacademy.com/wp-content/uploads/2023/07/banner-image-silverstonetg-1.jpg"],
+  },
+};
 
 import { CurrencyProvider } from '@/lib/CurrencyContext';
 
