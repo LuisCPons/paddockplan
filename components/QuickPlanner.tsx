@@ -114,6 +114,51 @@ const getStyleName = (val: number): string => {
   return 'Experience';
 };
 
+const CustomSlider = ({ 
+  value, 
+  min, 
+  max, 
+  onChange 
+}: { 
+  value: number, 
+  min: number, 
+  max: number, 
+  onChange: (val: number) => void 
+}) => {
+  const steps = [];
+  for (let i = min; i <= max; i++) steps.push(i);
+  const progress = ((value - min) / (max - min)) * 100;
+
+  return (
+    <div className="relative w-full h-8 flex items-center my-2">
+      <div className="absolute left-0 right-0 h-1 bg-[#262626] rounded-full" />
+      <div 
+        className="absolute left-0 h-1 bg-accent rounded-full transition-all duration-300" 
+        style={{ width: `${progress}%` }} 
+      />
+      <div className="absolute inset-0 flex justify-between items-center">
+        {steps.map((step) => {
+          const isActive = step === value;
+          const isPassed = step <= value;
+          return (
+            <button
+              key={step}
+              onClick={() => onChange(step)}
+              className={`w-4 h-4 rounded-full border-[3px] transition-all duration-300 z-10 ${
+                isActive 
+                  ? 'bg-accent border-background scale-[1.3] shadow-[0_0_12px_rgba(204,0,0,0.5)]' 
+                  : isPassed 
+                    ? 'bg-accent border-background hover:scale-110' 
+                    : 'bg-muted-foreground border-background hover:bg-foreground/50 hover:scale-110'
+              }`}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export function QuickPlanner() {
   const { selectedCurrency, convert } = useCurrency();
   const [gpIndex, setGpIndex] = useState(1);
@@ -186,10 +231,9 @@ export function QuickPlanner() {
                 <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Grand Prix</label>
                 <span className="text-sm font-bold text-accent">{PLANNER_DATA[gpIndex].name}</span>
               </div>
-              <input 
-                type="range" min="1" max="3" step="1"
-                value={gpIndex} onChange={(e) => setGpIndex(parseInt(e.target.value))}
-                className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
+              <CustomSlider 
+                min={1} max={3} 
+                value={gpIndex} onChange={setGpIndex} 
               />
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest px-1">
                 <span className={`transition-colors duration-300 ${gpIndex === 1 ? 'text-foreground' : 'text-muted-foreground'}`}>Monza</span>
@@ -204,10 +248,9 @@ export function QuickPlanner() {
                 <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Budget Level</label>
                 <span className="text-sm font-bold text-accent">{getBudgetName(budgetIndex)}</span>
               </div>
-              <input 
-                type="range" min="1" max="3" step="1"
-                value={budgetIndex} onChange={(e) => setBudgetIndex(parseInt(e.target.value))}
-                className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
+              <CustomSlider 
+                min={1} max={3} 
+                value={budgetIndex} onChange={setBudgetIndex} 
               />
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest px-1">
                 <span className={`transition-colors duration-300 ${budgetIndex === 1 ? 'text-foreground' : 'text-muted-foreground'}`}>Value</span>
@@ -222,10 +265,9 @@ export function QuickPlanner() {
                 <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Trip Length</label>
                 <span className="text-sm font-bold text-accent">{lengthIndex} Nights</span>
               </div>
-              <input 
-                type="range" min="2" max="4" step="1"
-                value={lengthIndex} onChange={(e) => setLengthIndex(parseInt(e.target.value))}
-                className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
+              <CustomSlider 
+                min={2} max={4} 
+                value={lengthIndex} onChange={setLengthIndex} 
               />
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest px-1">
                 <span className={`transition-colors duration-300 ${lengthIndex === 2 ? 'text-foreground' : 'text-muted-foreground'}`}>2 Nights</span>
@@ -240,10 +282,9 @@ export function QuickPlanner() {
                 <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Travel Style</label>
                 <span className="text-sm font-bold text-accent">{getStyleName(styleIndex)}</span>
               </div>
-              <input 
-                type="range" min="1" max="3" step="1"
-                value={styleIndex} onChange={(e) => setStyleIndex(parseInt(e.target.value))}
-                className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
+              <CustomSlider 
+                min={1} max={3} 
+                value={styleIndex} onChange={setStyleIndex} 
               />
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest px-1">
                 <span className={`transition-colors duration-300 ${styleIndex === 1 ? 'text-foreground' : 'text-muted-foreground'}`}>Efficiency</span>
