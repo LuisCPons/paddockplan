@@ -4,7 +4,7 @@ import { MessageCircle, Camera, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="bg-background pt-24 pb-12 border-t border-zinc-200">
+    <footer className="bg-background pt-24 pb-12 border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
           <div className="md:col-span-1">
@@ -15,9 +15,9 @@ export function Footer() {
               The premier independent Race Control Platform for the global motorsport community.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 border border-zinc-200 flex items-center justify-center text-foreground hover:bg-foreground hover:text-background transition-colors"><MessageCircle className="w-4 h-4" /></a>
-              <a href="#" className="w-10 h-10 border border-zinc-200 flex items-center justify-center text-foreground hover:bg-foreground hover:text-background transition-colors"><Camera className="w-4 h-4" /></a>
-              <a href="#" className="w-10 h-10 border border-zinc-200 flex items-center justify-center text-foreground hover:bg-foreground hover:text-background transition-colors"><Mail className="w-4 h-4" /></a>
+              <a href="#" className="w-10 h-10 border border-border rounded-full flex items-center justify-center text-foreground hover:bg-foreground hover:text-background transition-colors"><MessageCircle className="w-4 h-4" /></a>
+              <a href="#" className="w-10 h-10 border border-border rounded-full flex items-center justify-center text-foreground hover:bg-foreground hover:text-background transition-colors"><Camera className="w-4 h-4" /></a>
+              <a href="#" className="w-10 h-10 border border-border rounded-full flex items-center justify-center text-foreground hover:bg-foreground hover:text-background transition-colors"><Mail className="w-4 h-4" /></a>
             </div>
           </div>
           
@@ -48,7 +48,7 @@ export function Footer() {
               <input 
                 type="email" 
                 placeholder="EMAIL ADDRESS" 
-                className="bg-transparent border-b border-zinc-300 px-0 py-3 text-sm focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/30 font-medium"
+                className="bg-transparent border-b border-border px-0 py-3 text-sm focus:outline-none focus:border-accent transition-colors placeholder:text-foreground/30 font-medium"
               />
               <button className="bg-transparent text-xs font-bold uppercase tracking-widest text-foreground text-left py-2 hover:text-accent transition-colors mt-2">
                 Subscribe &rarr;
@@ -57,7 +57,7 @@ export function Footer() {
           </div>
         </div>
         
-        <div className="pt-8 border-t border-zinc-200 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-foreground/40 font-light text-center md:text-left">
+        <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-foreground/40 font-light text-center md:text-left">
           <p>© 2026 PaddockPlan. All rights reserved.</p>
           <p>An independent platform not affiliated with the FIA, Formula 1, or associated companies.</p>
         </div>

@@ -84,10 +84,10 @@ export function Pricing() {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
                 }}
                 whileHover={{ y: -8 }}
-                className={`relative flex flex-col p-10 border transition-all duration-500 bg-card ${tier.popular ? 'border-accent shadow-[0_0_40px_rgba(204,0,0,0.1)] md:scale-105 z-10' : 'border-border hover:border-muted-foreground'}`}
+                className={`relative flex flex-col p-10 border rounded-2xl transition-all duration-500 bg-card ${tier.popular ? 'border-accent shadow-[0_0_40px_rgba(204,0,0,0.1)] md:scale-105 z-10' : 'border-border hover:border-muted-foreground'}`}
               >
                 {tier.popular && (
-                  <div className="absolute top-0 right-8 -translate-y-1/2 bg-accent text-white text-[10px] font-bold px-3 py-1 uppercase tracking-[0.2em]">
+                  <div className="absolute top-0 right-8 -translate-y-1/2 bg-accent text-white text-[10px] font-bold px-4 py-1.5 uppercase tracking-[0.2em] rounded-full">
                     Highly Popular for Monza
                   </div>
                 )}
@@ -112,7 +112,7 @@ export function Pricing() {
 
                 <button 
                   onClick={() => setIsModalOpen(true)}
-                  className={`w-full py-4 text-xs font-bold uppercase tracking-widest transition-all ${tier.popular ? 'bg-accent text-white hover:bg-black' : 'bg-transparent text-foreground border border-border hover:bg-white/5'}`}
+                  className={`w-full py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-xl ${tier.popular ? 'bg-accent text-white hover:bg-white hover:text-black' : 'bg-transparent text-foreground border border-border hover:border-accent/50 hover:bg-white/5'}`}
                 >
                   {tier.cta}
                 </button>

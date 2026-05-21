@@ -27,23 +27,23 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="race-control" className="py-24 md:py-32 bg-background border-t border-zinc-200">
+    <section id="race-control" className="py-24 md:py-32 bg-background border-t border-border">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">RACE CONTROL</span>
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4 text-foreground">FAQ at Race Control</h2>
         </div>
 
-        <div className="border-t border-zinc-200">
+        <div className="border-t border-border">
           {FAQS.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
-              <div key={i} className="border-b border-zinc-200">
+              <div key={i} className="border-b border-border">
                 <button 
                   onClick={() => setOpenIndex(isOpen ? null : i)}
                   className="w-full flex items-center justify-between py-8 text-left focus:outline-none group"
                 >
-                  <span className="font-bold text-xl tracking-tight text-foreground/80 group-hover:text-foreground transition-colors">{faq.q}</span>
+                  <span className="font-bold text-xl tracking-tight text-foreground/80 group-hover:text-accent transition-colors">{faq.q}</span>
                   <Plus className={`w-5 h-5 text-foreground transition-transform duration-500 ease-out ${isOpen ? 'rotate-45 text-accent' : ''}`} />
                 </button>
                 <AnimatePresence>

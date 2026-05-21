@@ -167,11 +167,16 @@ export function QuickPlanner() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-card border border-border p-10 md:p-16 relative shadow-sm"
+          className="bg-card border border-border rounded-2xl p-10 md:p-16 relative shadow-sm"
         >
           <div className="text-center mb-16">
             <span className="text-xs font-bold uppercase tracking-widest text-accent mb-4 block">Interactive Planner</span>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Tailor Your Weekend</h2>
+          </div>
+
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Preferred Currency</span>
+            <CurrencySelector />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12 mb-16">
@@ -179,10 +184,7 @@ export function QuickPlanner() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Grand Prix</label>
-                <div className="flex items-center gap-3">
-                  <CurrencySelector />
-                  <span className="text-sm font-bold text-accent">{PLANNER_DATA[gpIndex].name}</span>
-                </div>
+                <span className="text-sm font-bold text-accent">{PLANNER_DATA[gpIndex].name}</span>
               </div>
               <input 
                 type="range" min="1" max="3" step="1"
@@ -371,7 +373,7 @@ export function QuickPlanner() {
                          <div key={i} className="space-y-2">
                             <div className="flex justify-between items-center text-[8px] text-muted-foreground uppercase font-bold">
                               <span>Label {i}</span>
-                              <span>€###</span>
+                              <span>—</span>
                             </div>
                             <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                                <div className="h-full bg-accent" style={{ width: `${scale * 100}%` }} />

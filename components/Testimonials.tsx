@@ -46,7 +46,7 @@ export function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
-              className="p-8 border border-border bg-card/50 rounded-2xl relative group hover:border-accent transition-all"
+              className="p-8 border border-border bg-card/50 rounded-2xl relative group hover:border-accent/40 transition-all"
             >
               <MessageSquareQuote className="w-8 h-8 text-accent/20 mb-6 group-hover:text-accent/40 transition-colors" />
               <p className="text-lg font-light leading-relaxed mb-8 italic">"{t.quote}"</p>

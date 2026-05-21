@@ -5,7 +5,6 @@ import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { AccessModal } from './AccessModal';
 import { BrandLogo } from './BrandLogo';
-import { CurrencySelector } from './CurrencySelector';
 
 export function Navbar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,9 +27,7 @@ export function Navbar() {
             </div>
 
             <div className="flex items-center gap-4 md:gap-10">
-              <div className="hidden sm:block">
-                <CurrencySelector />
-              </div>
+
               
               {/* Desktop Button */}
               <button 
@@ -77,9 +74,7 @@ export function Navbar() {
               RACE CONTROL
             </Link>
             <div className="pt-4 border-t border-border w-full flex flex-col items-center gap-6">
-              <div className="sm:hidden">
-                <CurrencySelector />
-              </div>
+
               <button 
                 onClick={() => {
                   setIsModalOpen(true);

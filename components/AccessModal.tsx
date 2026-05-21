@@ -185,7 +185,7 @@ export function AccessModal({ isOpen, onClose, defaultGP = '' }: AccessModalProp
                 </>
               ) : (
                 <>
-                  Proceed to Secure Payment (€19) <ArrowRight className="w-4 h-4" />
+                  Proceed to Secure Payment <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
