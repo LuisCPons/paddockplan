@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     siteName: "PaddockPlan",
     images: [
       {
-        url: "https://coachdaveacademy.com/wp-content/uploads/2023/07/banner-image-silverstonetg-1.jpg",
+        url: "https://paddockplan.vercel.app/og-image.png",
         width: 1200,
         height: 630,
         alt: "PaddockPlan Digital Race Control Platform Preview",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PaddockPlan | The Definitive Race Control Platform",
     description: "Get expert-backed logistics, stay heatmaps, and track-side secrets for the 2026 season.",
-    images: ["https://coachdaveacademy.com/wp-content/uploads/2023/07/banner-image-silverstonetg-1.jpg"],
+    images: ["https://paddockplan.vercel.app/og-image.png"],
   },
 };
 
