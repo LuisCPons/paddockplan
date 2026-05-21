@@ -191,10 +191,10 @@ export function QuickPlanner() {
                 value={gpIndex} onChange={(e) => setGpIndex(parseInt(e.target.value))}
                 className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
               />
-              <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
-                <span>Monza</span>
-                <span>Silverstone</span>
-                <span>Barcelona</span>
+              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest px-1">
+                <span className={`transition-colors duration-300 ${gpIndex === 1 ? 'text-foreground' : 'text-muted-foreground'}`}>Monza</span>
+                <span className={`transition-colors duration-300 ${gpIndex === 2 ? 'text-foreground' : 'text-muted-foreground'}`}>Silverstone</span>
+                <span className={`transition-colors duration-300 ${gpIndex === 3 ? 'text-foreground' : 'text-muted-foreground'}`}>Barcelona</span>
               </div>
             </div>
 
@@ -209,10 +209,10 @@ export function QuickPlanner() {
                 value={budgetIndex} onChange={(e) => setBudgetIndex(parseInt(e.target.value))}
                 className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
               />
-              <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
-                <span>Value</span>
-                <span>Balanced</span>
-                <span>Premium</span>
+              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest px-1">
+                <span className={`transition-colors duration-300 ${budgetIndex === 1 ? 'text-foreground' : 'text-muted-foreground'}`}>Value</span>
+                <span className={`transition-colors duration-300 ${budgetIndex === 2 ? 'text-foreground' : 'text-muted-foreground'}`}>Balanced</span>
+                <span className={`transition-colors duration-300 ${budgetIndex === 3 ? 'text-foreground' : 'text-muted-foreground'}`}>Premium</span>
               </div>
             </div>
 
@@ -227,10 +227,10 @@ export function QuickPlanner() {
                 value={lengthIndex} onChange={(e) => setLengthIndex(parseInt(e.target.value))}
                 className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
               />
-              <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
-                <span>2 Nights</span>
-                <span>3 Nights</span>
-                <span>4 Nights</span>
+              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest px-1">
+                <span className={`transition-colors duration-300 ${lengthIndex === 2 ? 'text-foreground' : 'text-muted-foreground'}`}>2 Nights</span>
+                <span className={`transition-colors duration-300 ${lengthIndex === 3 ? 'text-foreground' : 'text-muted-foreground'}`}>3 Nights</span>
+                <span className={`transition-colors duration-300 ${lengthIndex === 4 ? 'text-foreground' : 'text-muted-foreground'}`}>4 Nights</span>
               </div>
             </div>
 
@@ -245,10 +245,10 @@ export function QuickPlanner() {
                 value={styleIndex} onChange={(e) => setStyleIndex(parseInt(e.target.value))}
                 className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
               />
-              <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
-                <span>Efficiency</span>
-                <span>Comfort</span>
-                <span>Experience</span>
+              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest px-1">
+                <span className={`transition-colors duration-300 ${styleIndex === 1 ? 'text-foreground' : 'text-muted-foreground'}`}>Efficiency</span>
+                <span className={`transition-colors duration-300 ${styleIndex === 2 ? 'text-foreground' : 'text-muted-foreground'}`}>Comfort</span>
+                <span className={`transition-colors duration-300 ${styleIndex === 3 ? 'text-foreground' : 'text-muted-foreground'}`}>Experience</span>
               </div>
             </div>
           </div>
